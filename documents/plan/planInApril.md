@@ -8,7 +8,7 @@
 ---
 
 ## 📅 Day 1 – Setup & First Repo
-- [ ] Create GitHub account
+- [x] Create GitHub account
 - [ ] Create repo: `git-practice`
 - [ ] Clone repo to local
 - [ ] Create `README.md`
