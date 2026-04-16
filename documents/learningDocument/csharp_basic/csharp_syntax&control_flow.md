@@ -212,3 +212,7 @@ Console.WriteLine(a); // Output: 50
 - **`ref`** → when you want to modify the original variable.
 - **`out`** → when you need to return multiple values ​​from a function.
 - **Otherwise** → avoid overuse, as it can easily make the code difficult to read.
+
+
+
+# Reference: https://www.w3schools.com/cs , https://learn.microsoft.com/vi-vn/dotnet/csharp/language-reference/builtin-types/value-types
