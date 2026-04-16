@@ -15,14 +15,14 @@
 ---
 
 ### Day 2: C# Syntax & Control Flow
-- [ ] Learn variables & data types (value vs reference)
-- [ ] Practice strings
-- [ ] Learn if/switch (pattern matching)
-- [ ] Learn loops (for, foreach, while)
-- [ ] Learn methods, ref/out
-- [ ] Build Console Calculator App
-- [ ] Handle errors (divide by zero)
-- [ ] Commit `CalculatorApp`
+- [x] Learn variables & data types (value vs reference)
+- [x] Practice strings
+- [x] Learn if/switch (pattern matching)
+- [x] Learn loops (for, foreach, while)
+- [x] Learn methods, ref/out
+- [x] Build Console Calculator App
+- [x] Handle errors (divide by zero)
+- [x] Commit `CalculatorApp`
 
 ---
 
