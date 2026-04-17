@@ -27,11 +27,11 @@
 ---
 
 ### Day 3: Advanced C# Basics
-- [ ] Learn Classes vs Structs
-- [ ] Learn Enums
-- [ ] Learn Namespaces
-- [ ] Learn Access Modifiers
-- [ ] Intro to async/await & Task
+- [x] Learn Classes vs Structs
+- [x] Learn Enums
+- [x] Learn Namespaces
+- [x] Learn Access Modifiers
+- [x] Intro to async/await & Task
 - [ ] Build `StudentManagementConsole`
 - [ ] Use Enum (StudentGrade)
 - [ ] Create async method (simulate save with Task.Delay)
