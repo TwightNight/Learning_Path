@@ -32,10 +32,10 @@
 - [x] Learn Namespaces
 - [x] Learn Access Modifiers
 - [x] Intro to async/await & Task
-- [ ] Build `StudentManagementConsole`
-- [ ] Use Enum (StudentGrade)
-- [ ] Create async method (simulate save with Task.Delay)
-- [ ] Commit project
+- [x] Build `StudentManagementConsole`
+- [x] Use Enum (StudentGrade)
+- [x] Create async method (simulate save with Task.Delay)
+- [x] Commit project
 
 ---
 

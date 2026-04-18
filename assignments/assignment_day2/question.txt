@@ -1,0 +1,8 @@
+Objective: To build a student information management program, applying professional source code organization techniques, data type classification, and asynchronous programming.
+Detailed Requirements:
+Namespace Organization: Divide the project into distinct namespaces: StudentApp.Models (contains data) and StudentApp.Services (contains logic).
+
+Data Type Definition: Create an Enum StudentGrade to represent academic grades (A, B, C, D, F).
+Create a Class Student containing the following information: ID, Name, and Grade. Explain the reason for choosing a class instead of a struct for this object.
+Access Control Management: Use Access Modifiers (public, private) to protect the data within the student class.
+Asynchronous Handling: Write a method to simulate saving data to the database using async/await and Task.Delay.
