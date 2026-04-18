@@ -44,8 +44,8 @@ Asynchronous programming allows methods to yield control without blocking thread
 
 ---
 ### Reference:
-**Access modifiers**: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/access-modifiers
-**Choosing Between Class and Struct**: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/choosing-between-class-and-struct
-**C# Advanced**: https://learn.microsoft.com/en-us/shows/c-advanced/
-**Namespaces and using directives**: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/program-structure/namespaces
-**Enum**: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/enums
+* **Access modifiers**: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/access-modifiers
+* **Choosing Between Class and Struct**: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/choosing-between-class-and-struct
+* **C# Advanced**: https://learn.microsoft.com/en-us/shows/c-advanced/
+* **Namespaces and using directives**: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/program-structure/namespaces
+* **Enum**: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/enums

@@ -40,13 +40,9 @@
 ---
 
 ### Day 4: OOP Part 1
-- [ ] Learn Constructors
-- [ ] Learn Encapsulation (properties)
-- [ ] Learn Inheritance (base, virtual, override)
-- [ ] Start `OrderSystem`
-- [ ] Create base class `User`
-- [ ] Create derived classes `Admin`, `Customer`
-- [ ] Encapsulate sensitive fields (Password, Email)
+- [x] Learn Constructors
+- [x] Learn Encapsulation (properties)
+- [x] Learn Inheritance (base, virtual, override)
 
 ---
 
@@ -55,11 +51,6 @@
 - [ ] Learn Interfaces (I- prefix)
 - [ ] Learn Abstract Classes
 - [ ] Learn SOLID (SRP, DIP focus)
-- [ ] Create `IPaymentProcessor`
-- [ ] Implement `CreditCardProcessor`
-- [ ] Implement `PayPalProcessor`
-- [ ] Inject interface into `Order`
-- [ ] Ensure polymorphic behavior
 
 ---
 
