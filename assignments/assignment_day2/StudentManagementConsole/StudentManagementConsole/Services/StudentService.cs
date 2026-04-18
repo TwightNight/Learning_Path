@@ -11,7 +11,7 @@ namespace StudentManagementConsole.Services
     {
         public async Task Save(Student student)
         {
-            Console.WriteLine($"Saving... {student.Name}");
+            Console.WriteLine($"Saving... {student.Name} with grade {student.Grade}");
             await Task.Delay(2000);
             Console.WriteLine("Saved");
         }
