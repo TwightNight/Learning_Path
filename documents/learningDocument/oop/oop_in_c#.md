@@ -180,7 +180,96 @@ When an instance of a child class is created, C# follows this sequence:
 3.  Executes field initializers of the parent class.
 4.  Executes the parent class's constructor (top-down from `System.Object`).
 5.  Executes the child class's constructor.
+---
+Here is the translated and beautifully formatted Markdown document in English, maintaining the style of the previous sections.
 
+***
+
+## 🎭 7. Polymorphism
+
+In Object-Oriented Programming (OOP) with C#, **Polymorphism** means "many forms." It allows an object or a method to exhibit different behaviors depending on the specific context. This mechanism enables a single interface to represent multiple underlying implementations.
+
+### 7.1. Types of Polymorphism
+Polymorphism is divided into two main categories based on when the system decides which method to execute:
+
+*   **Compile-time Polymorphism (Static Polymorphism):** Achieved through **Method Overloading** or **Operator Overloading**. The compiler determines which method to call based on the method signature (number and data types of parameters) as soon as the code is compiled.
+*   **Runtime Polymorphism (Dynamic Polymorphism):** Achieved through **Method Overriding** and **Upcasting**. The decision of which logic to execute is made while the program is running, based on the *actual* type of the object in memory, not the type of the reference variable.
+
+### 7.2. Core Keywords in Dynamic Polymorphism
+To implement runtime polymorphism, C# uses a specific set of keywords to establish relationships between parent and child classes:
+
+*   **`virtual`**: Used in a parent class to mark a method, property, or event that can be redefined in a child class. A `virtual` method typically provides a default implementation.
+*   **`override`**: Used by a child class to provide a new, specific implementation for a method marked as `virtual` or `abstract` in the parent class.
+*   **`abstract`**: Used to declare incomplete classes or methods. An `abstract` method has no body and **forces** child classes to override it to provide the execution logic.
+*   **`sealed`**: The exact opposite of polymorphism. This keyword prevents a class from being inherited or stops a child class from further overriding an already overridden method, thereby protecting critical logic.
+
+### 7.3. Upcasting and Dynamic Dispatch
+This is the "heart" of polymorphism in C#:
+*   **Upcasting:** The act of storing a child class object in a parent class reference variable. 
+    *   *Example:* `Animal myDog = new Dog();`
+*   **Dynamic Dispatch:** When a `virtual` method is called on a parent reference variable, the Runtime (CLR) checks the actual type of the stored object and invokes the deeply `overridden` method in the derived class. If the child class hasn't overridden it, the parent class's method is executed.
+
+### 7.4. Overriding vs. Method Hiding
+C# provides the **`new`** keyword to hide parent class methods instead of overriding them. The key differences are:
+*   **Override:** Participates in dynamic polymorphism. If invoked through a parent variable, the child class's method is still executed.
+*   **New (Hiding):** Does **not** participate in dynamic polymorphism. If invoked through a parent variable, the parent class's method is executed instead of the child's.
+
+### 7.5. Benefits of Polymorphism
+*   **Flexibility:** Allows the same block of code to operate on multiple types of objects, making it easy to extend the system without modifying existing code.
+*   **Code Reusability:** Common behaviors are defined in the parent class, while highly specific behaviors are refined in the child classes.
+*   **Decoupling:** Encourages system design based on abstract classes or interfaces rather than concrete implementations.
+
+> **Real-world Example:** A `Shape` class has a `virtual CalculateArea()` method. Classes like `Circle`, `Rectangle`, and `Square` inherit from `Shape` and `override` this method with their own mathematical formulas. When you iterate through a list of shapes (`List<Shape>`), you simply call `CalculateArea()`. You don't need to check what specific shape it is; the system automatically calculates the correct area for each.
+
+---
+
+## 💡 8. Abstraction
+
+**Abstraction** is one of the four main pillars of OOP in C#. It focuses on hiding complex internal implementation details and exposing only the essential features and behaviors of an object to the user. Instead of describing *how* an object works in detail, abstraction focuses purely on **what** the object does.
+
+### 8.1. Abstract Class
+An abstract class serves as a "blueprint" or template for other classes to inherit from.
+*   **Declaration:** Marked with the `abstract` keyword.
+*   **Cannot be instantiated:** You **cannot create an object directly** from an abstract class (e.g., `new AbstractClass()` will throw an error).
+*   **Components:** An abstract class can contain both concrete methods (with implementation bodies) and abstract methods (without bodies).
+*   **Constructors:** Abstract classes can still have constructors and instance variables. These are used to initialize the state for child classes via the `base()` keyword.
+
+### 8.2. Abstract Method
+These are methods that define a behavior but lack a body (implementation logic).
+*   **Mandatory Override:** Any non-abstract child class inheriting from the parent **must** provide a concrete implementation for these methods using the `override` keyword.
+*   **Role:** It establishes a strict "contract," ensuring that all derived classes possess certain behaviors, even if their internal execution differs.
+
+### 8.3. Benefits of Abstraction
+*   **Complexity Management:** Helps developers focus on the essential properties and interactions of entities within the system rather than getting bogged down by details.
+*   **Decoupling:** Other parts of the program depend on abstract concepts rather than concrete classes, making the system much easier to scale and maintain.
+*   **Code Reusability:** Allows sharing common logic in the parent class while still permitting strict specialization in child classes.
+
+---
+
+### 8.4. Practical Example
+
+#### Example: Animal System
+The `Animal` class is an abstract concept because you cannot have a generic "animal" in the real world; it must be a specific species.
+
+```csharp
+public abstract class Animal 
+{
+    // Abstract method: All animals make a sound, but HOW they sound differs.
+    // Notice there are no curly braces { } here.
+    public abstract void MakeSound(); 
+}
+
+public class Dog : Animal 
+{
+    // The child class MUST override and provide the implementation.
+    public override void MakeSound() => Console.WriteLine("Woof!");
+}
+
+public class Cat : Animal 
+{
+    public override void MakeSound() => Console.WriteLine("Meow!");
+}
+```
 
 ---
 ### Reference: https://www.youtube.com/watch?v=pXcMdI3LVEE&list=PL33lvabfss1zRgaWBcC__Bnt5AOSRfU71&index=2, https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/tutorials/oop
