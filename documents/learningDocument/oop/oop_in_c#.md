@@ -270,6 +270,117 @@ public class Cat : Animal
     public override void MakeSound() => Console.WriteLine("Meow!");
 }
 ```
+---
+## 🔌 9. Interfaces
 
+In C#, an **Interface** is a crucial component used to define a strict "contract" of behaviors that any class implementing it must follow. Below are detailed concepts about Interfaces, practical examples, and a comparison with Abstract Classes.
+
+### 9.1. Core Concepts of Interfaces
+*   **Definition:** An interface only contains the declarations of members (methods, properties, events, indexers) without any implementation body. By default, interface members are implicitly `public` and `abstract`.
+*   **Multiple Implementation:** C# does not allow a class to inherit from multiple parent classes (No Multiple Inheritance). However, **a class can implement multiple Interfaces**. This is how C# achieves behavioral multiple inheritance.
+*   **"Can-do" Relationship:** Interfaces typically describe an ability or behavior an object can perform (e.g., *can pay*, *can print*). This contrasts with the strict **"Is-a"** relationship of class inheritance.
+*   **Naming Convention:** By convention in C#, Interface names always begin with the capital letter **`I`** (e.g., `IMessage`, `IPayment`) to easily distinguish them from standard classes.
+
+---
+
+### 9.2. Practical Example
+Suppose you need to build a payment module for an `OrderSystem`. You can define an Interface establishing a rule that all payment methods must adhere to.
+
+```csharp
+// 1. Defining the Interface
+public interface IPaymentProcessor
+{
+    // Only the declaration, no method body { }
+    void ProcessPayment(decimal amount); 
+}
+
+// 2. Implementing the Interface in a concrete class
+public class CashPayment : IPaymentProcessor
+{
+    public void ProcessPayment(decimal amount)
+    {
+        Console.WriteLine($"Paid {amount:C} using Cash.");
+    }
+}
+
+// 3. Implementing the Interface in another concrete class
+public class CreditCardPayment : IPaymentProcessor
+{
+    public void ProcessPayment(decimal amount)
+    {
+        Console.WriteLine($"Paid {amount:C} using Credit Card.");
+    }
+}
+```
+> *In this example, any class that claims to implement `IPaymentProcessor` is absolutely forced by the compiler to provide the `ProcessPayment` method with the exact same signature.*
+
+---
+
+### 9.3. Interface vs. Abstract Class
+Although both are used to design abstract components and cannot be instantiated directly using the `new` keyword, they have fundamental architectural differences:
+
+| Feature | 🔌 Interface | 🧩 Abstract Class |
+| :--- | :--- | :--- |
+| **Components** | Contains **only** abstract declarations (no body).* | Can contain **both** abstract methods and concrete methods (with logic). |
+| **Data Fields** | **Cannot** contain instance fields or variables. | **Can** contain variables, fields, and constants. |
+| **Constructors**| **Does not** have constructors. | **Can have** constructors to initialize states for child classes. |
+| **Inheritance** | A class can implement **multiple** interfaces. | A class can inherit from **only one** abstract class. |
+| **Core Purpose**| Defines common behaviors for classes that are **not necessarily related** to each other. | Shares core code and state among classes that are **closely related** (family tree). |
+| **Modifiers** | Does not use access modifiers for members (implicitly public). | Uses access modifiers (`public`, `protected`, `private`) and keywords like `virtual`. |
+
+*(Note: C# 8.0+ introduced Default Interface Methods, allowing some logic in interfaces, but the core architectural purpose remains defining contracts).*
+
+---
+
+### 💡 When to use which?
+
+*   🛠️ **Use an Abstract Class** when you want to create a foundational base for closely related classes, allowing you to share common code and manage shared states (e.g., `Vehicle` -> `Car`, `Truck`).
+*   🔗 **Use an Interface** when you want to establish a flexible standard of behavior that multiple, completely unrelated classes can adopt (e.g., `IDisposable`, `IPrintable` implemented by both a `Document` class and a `Photograph` class).
+---
+## 🧱 10. The SOLID Principles
+
+**SOLID** is an acronym representing five foundational design principles in Object-Oriented Programming (OOP). Introduced by Robert C. Martin (Uncle Bob), these principles help developers design software that is robust, flexible, easy to understand, and highly maintainable.
+
+Here is a detailed breakdown of each principle with easy-to-understand examples:
+
+### 1️⃣ Single Responsibility Principle (SRP)
+> **Definition:** *A class should have one, and only one, reason to change.* 
+In simple terms, a class should be specialized and focus on doing exactly **one single job**. If a class takes on too many responsibilities, it becomes difficult to maintain and prone to bugs.
+
+*   ❌ **Bad Example (Violating SRP):** Imagine a `User` class that holds user data (Name, Age), saves that data to the database, AND sends welcome emails. If the email API changes, you have to modify the `User` class.
+*   ✅ **Good Example:** Split the tasks. 
+    *   `User` class: Only holds user data properties.
+    *   `UserRepository` class: Only handles saving data to the database.
+    *   `EmailService` class: Only handles sending emails.
+
+### 2️⃣ Open/Closed Principle (OCP)
+> **Definition:** *Software entities (classes, modules) should be **Open for extension**, but **Closed for modification**.*
+You should be able to add new features or behaviors to your app without altering existing, tested, and working code.
+
+*   ❌ **Bad Example (Violating OCP):** A `Checkout` class that calculates discounts using a massive `if-else` block (`if Customer == "VIP" then... else if Customer == "Normal" then...`). Every time you add a new customer tier, you must edit the `Checkout` class, risking breaking the whole system.
+*   ✅ **Good Example:** Create an `IDiscount` interface with a `Calculate()` method. Then create separate classes like `VipDiscount` and `NormalDiscount` that implement it. When a "HolidayDiscount" is needed, you just create a **new class**; the `Checkout` class remains untouched.
+
+### 3️⃣ Liskov Substitution Principle (LSP)
+> **Definition:** *Objects of a superclass should be replaceable with objects of its subclasses without breaking the application.*
+If Class B inherits from Class A, Class B must be able to do everything Class A can do, without causing errors or unexpected behaviors.
+
+*   ❌ **Bad Example (Violating LSP):** The classic Bird example. You have a base class `Bird` with a `Fly()` method. You create a `Penguin` class that inherits from `Bird`. But penguins can't fly! If the system calls `penguin.Fly()`, the program will either crash or throw an exception. `Penguin` is not a proper substitute for `Bird`.
+*   ✅ **Good Example:** Redesign the hierarchy. Have a base `Bird` class (with methods like `Eat()`), and create a separate interface `IFlyingBird` (with `Fly()`). A `Sparrow` inherits `Bird` and implements `IFlyingBird`. A `Penguin` just inherits `Bird`. No system crashes!
+
+### 4️⃣ Interface Segregation Principle (ISP)
+> **Definition:** *Clients should not be forced to depend upon interfaces they do not use.*
+Instead of creating one giant "fat" interface that does everything, break it down into smaller, highly specific interfaces. 
+
+*   ❌ **Bad Example (Violating ISP):** An `IMachine` interface with methods: `Print()`, `Scan()`, and `Fax()`. If you create a simple `BasicPrinter` class, it is forced to implement `Scan()` and `Fax()` even though it doesn't have that hardware. You end up writing dummy methods or throwing `NotImplementedException`.
+*   ✅ **Good Example:** Split them up into `IPrinter`, `IScanner`, and `IFax`. 
+    *   A `BasicPrinter` class only implements `IPrinter`. 
+    *   An `AllInOneMachine` class implements all three.
+
+### 5️⃣ Dependency Inversion Principle (DIP)
+> **Definition:** *High-level modules should not depend on low-level modules. Both should depend on abstractions (interfaces).*
+Think of it like a wall outlet. A lamp (high-level) doesn't wire directly into the electrical wires in the wall (low-level). Instead, both connect via a standard plug/socket (abstraction). You can unplug the lamp and plug in a TV easily.
+
+*   ❌ **Bad Example (Violating DIP):** A `StoreManager` class creates a new instance of `StripePaymentProcessor` directly inside it. The store is now permanently tied to Stripe. If the business wants to switch to PayPal, you have to tear the code apart.
+*   ✅ **Good Example:** The `StoreManager` should depend on an interface called `IPaymentProcessor`. It doesn't care *how* the payment is processed, just that it *can* be processed. You can easily pass in a `StripeProcessor` or `PayPalProcessor` (which both implement `IPaymentProcessor`) into the `StoreManager` without changing the manager's code.
 ---
 ### Reference: https://www.youtube.com/watch?v=pXcMdI3LVEE&list=PL33lvabfss1zRgaWBcC__Bnt5AOSRfU71&index=2, https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/tutorials/oop

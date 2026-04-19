@@ -47,10 +47,10 @@
 ---
 
 ### Day 5: OOP Part 2 & SOLID
-- [ ] Learn Polymorphism
-- [ ] Learn Interfaces (I- prefix)
-- [ ] Learn Abstract Classes
-- [ ] Learn SOLID (SRP, DIP focus)
+- [x] Learn Polymorphism
+- [x] Learn Interfaces (I- prefix)
+- [x] Learn Abstract Classes
+- [x] Learn SOLID (SRP, DIP focus)
 
 ---
 
