@@ -55,7 +55,9 @@
 ---
 
 ### Day 6: Data Structures & Collections
-- [ ] Learn IEnumerable, ICollection, IList
+- [x] Learn Arrays
+- [x] Learn Non-Generic and Generic Collection
+- [x] Learn IEnumerable, ICollection, IList
 - [ ] Practice List<T>
 - [ ] Practice Dictionary<TKey, TValue>
 - [ ] Practice HashSet<T>
