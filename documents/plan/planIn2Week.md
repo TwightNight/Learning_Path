@@ -58,27 +58,19 @@
 - [x] Learn Arrays
 - [x] Learn Non-Generic and Generic Collection
 - [x] Learn IEnumerable, ICollection, IList
-- [ ] Practice List<T>
-- [ ] Practice Dictionary<TKey, TValue>
-- [ ] Practice HashSet<T>
 - [ ] Learn Big O basics (O(1), O(N))
-- [ ] Build ToDoList app
-- [ ] Use List for tasks
-- [ ] Use Dictionary for lookup
-- [ ] Use HashSet to avoid duplicates
-- [ ] Compare lookup performance
 
 ---
 
 ### Day 7: Garbage Collection & Memory
-- [ ] Learn Stack vs Heap
-- [ ] Learn Boxing / Unboxing
-- [ ] Learn GC Generations (0,1,2)
+- [x] Learn Buildtime and Runtime
+- [x] Learn Managed vs Unmanaged code
+- [x] Learn Managed vs Unmanaged memory
+- [x] Learn Stack vs Heap
+- [x] Learn Boxing / Unboxing
+- [x] Learn GC Generations (0,1,2)
 - [ ] Learn IDisposable & using
-- [ ] Create class implementing IDisposable
-- [ ] Use it in a using block
-- [ ] Demonstrate boxing/unboxing in code
-- [ ] Write `MemoryNotes.md`
+
 
 ---
 
