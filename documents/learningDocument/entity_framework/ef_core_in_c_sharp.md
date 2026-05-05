@@ -10,3 +10,24 @@ The database is represented by a subclass, DbContext. Each data table is represe
 
 Data can be queried using LINQ instead of SQL. CRUD queries can be easily executed entirely from C# code with familiar classes without writing any SQL.
 Data structure operations such as creating databases, creating tables, and changing table structures can be performed using the Migration tool without losing data.
+
+A DbContext instance represents a session with the database and can be used to query and save instances of your entities.
+DbContext is a combination of the Unit Of Work and Repository patterns.
+Without DbContext, C# wouldn't know how to communicate with the database.
+It helps translate C# statements into SQL statements that the database understands.
+Change Tracking: When you retrieve an object from the database and modify it, the DbContext tracks that change.
+When you call the SaveChanges() function, it automatically generates the corresponding UPDATE or INSERT statement to save the changes to the database.
+
+DbSet<T> represents a Table in the database, where T is an Entity representing a data row in that table.
+It allows you to perform CRUD (Create, Read, Update, Delete) operations on that table through C# code (using LINQ) instead of having to write complex manual SQL statements.
+Instead of writing SQL: SELECT * FROM Blogs, you can simply write C# code: var blogs = db.Blogs.ToList();
+
+Data Annotation và Fluent API
+
+Relationships (navigations, foreign keys)
+
+Migration
+
+LINQ:Eager Loading,Lazy Loading,Explicit Loading||Change Tracking,No-Tracking Queries
+
+Bulk Operations, Concurrency,Interceptors, Global Query Filters, Transactions

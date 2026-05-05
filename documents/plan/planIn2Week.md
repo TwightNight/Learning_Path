@@ -100,12 +100,12 @@
 ---
 
 ### Day 10: EF Core Basics
-- [ ] Learn ORM concept
-- [ ] Learn DbContext, DbSet
-- [ ] Setup connection string
-- [ ] Install EF Core packages
-- [ ] Create Console App with EF Core
-- [ ] Create DbContext
+- [x] Learn ORM concept
+- [x] Learn DbContext, DbSet
+- [x] Setup connection string
+- [x] Install EF Core packages
+- [x] Create Console App with EF Core
+- [x] Create DbContext
 
 ---
 
