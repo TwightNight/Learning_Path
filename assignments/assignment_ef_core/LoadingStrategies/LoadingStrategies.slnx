@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="BussinessObjects/BussinessObjects.csproj" Id="8b98b89c-1e74-42f5-a9ee-45f360d2501f" />
+  <Project Path="ExplicitLoading/ExplicitLoading.csproj" Id="b54d30f9-518a-4197-8f68-624dcdb2f60b" />
+  <Project Path="LazyLoading/LazyLoading.csproj" Id="701bcbe2-e9b0-4333-9cbd-b28c8470baab" />
+  <Project Path="EagerLoading/EagerLoading.csproj" />
+</Solution>
