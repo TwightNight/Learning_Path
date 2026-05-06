@@ -110,19 +110,19 @@
 ---
 
 ### Day 11: EF Core Migrations
-- [ ] Learn Code-First approach
-- [ ] Learn Migrations
-- [ ] Create Entities: User, Product, Order
-- [ ] Configure One-to-Many relationship
-- [ ] Run migration
-- [ ] Update database
+- [x] Learn Code-First approach
+- [x] Learn Migrations
+- [x] Create Entities: User, Product, Order
+- [x] Configure One-to-Many relationship
+- [x] Run migration
+- [x] Update database
 
 ---
 
 ### Day 12: EF Core Querying & LINQ
-- [ ] Learn LINQ (Where, Select, OrderBy)
-- [ ] Learn Include / ThenInclude
-- [ ] Learn Tracking vs AsNoTracking
+- [x] Learn LINQ (Where, Select, OrderBy)
+- [x] Learn Include / ThenInclude
+- [x] Learn Tracking vs AsNoTracking
 - [ ] Seed 10 products
 - [ ] Query products by price
 - [ ] Query user with orders
