@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DataAnnotationDemo/DataAnnotationDemo.csproj" />
+  <Project Path="FluentApiDemo/FluentApiDemo.csproj" />
+</Solution>
