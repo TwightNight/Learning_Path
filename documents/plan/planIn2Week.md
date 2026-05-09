@@ -123,16 +123,13 @@
 - [x] Learn LINQ (Where, Select, OrderBy)
 - [x] Learn Include / ThenInclude
 - [x] Learn Tracking vs AsNoTracking
-- [ ] Seed 10 products
-- [ ] Query products by price
-- [ ] Query user with orders
-- [ ] Use AsNoTracking for read-only
+- [x] Use AsNoTracking for read-only
 
 ---
 
 ### Day 13: Repository Pattern & DTOs
-- [ ] Learn DTO concept
-- [ ] Learn Repository Pattern (basic)
+- [x] Learn DTO concept
+- [x] Learn Repository Pattern (basic)
 - [ ] Create ProductDto
 - [ ] Map Entity → DTO
 - [ ] Return DTOs in console output
