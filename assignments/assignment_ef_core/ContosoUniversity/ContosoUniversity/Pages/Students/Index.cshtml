@@ -5,79 +5,110 @@
     ViewData["Title"] = "Students";
 }
 
-<h2>Students</h2>
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<form asp-page="./Index" method="get">
-    <div class="form-actions no-color">
-        <p>
-            Find by name:
-            <input type="text" name="SearchString" value="@Model.CurrentFilter" />
-            <input type="submit" value="Search" class="btn btn-primary" /> |
-            <a asp-page="./Index">Back to full List</a>
-        </p>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Students Management</h3>
     </div>
-</form>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                <a asp-page="./Index" asp-route-sortOrder="@Model.NameSort">
-                    @Html.DisplayNameFor(model => model.Students[0].LastName)
-                </a>
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Students[0].FirstMidName)
-            </th>
-            <th>
-                <a asp-page="./Index" asp-route-sortOrder="@Model.DateSort">
-                    @Html.DisplayNameFor(model => model.Students[0].EnrollmentDate)
-                </a>
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Students)
+
+    <div class="card-body">
+
+        <p>
+            <a asp-page="Create" class="btn btn-success">
+                Create New
+            </a>
+        </p>
+
+        <form asp-page="./Index" method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text"
+                       name="SearchString"
+                       value="@Model.CurrentFilter"
+                       class="form-control"
+                       placeholder="Search by name" />
+
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Enrollment Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Students)
+                {
+                    <tr>
+                        <td>@item.LastName</td>
+                        <td>@item.FirstMidName</td>
+                        <td>@item.EnrollmentDate.ToShortDateString()</td>
+                        <td>
+                            <a asp-page="./Edit" asp-route-id="@item.ID"
+                               class="btn btn-warning btn-sm">Edit</a>
+
+                            <a asp-page="./Details" asp-route-id="@item.ID"
+                               class="btn btn-info btn-sm">Details</a>
+
+                            <a asp-page="./Delete" asp-route-id="@item.ID"
+                               class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="d-flex justify-content-center mt-3">
+    <ul class="pagination pagination-sm m-0">
+        
+        @if (Model.CurrentPage > 1)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.LastName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FirstMidName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.EnrollmentDate)
-                </td>
-                <td>
-                    <a asp-page="./Edit" asp-route-id="@item.ID">Edit</a> |
-                    <a asp-page="./Details" asp-route-id="@item.ID">Details</a> |
-                    <a asp-page="./Delete" asp-route-id="@item.ID">Delete</a>
-                </td>
-            </tr>
+            <li class="page-item">
+                <a class="page-link"
+                       asp-page="./Index"
+                       asp-route-pageIndex="@(Model.CurrentPage - 1)"
+                       asp-route-searchString="@Model.CurrentFilter">
+                    &laquo; Previous
+                </a>
+            </li>
         }
-    </tbody>
-</table>
-<div>
-    @if (Model.CurrentPage > 1)
-    {
-        <a asp-page="./Index"
-               asp-route-pageIndex="@(Model.CurrentPage - 1)"
-               asp-route-searchString="@Model.CurrentFilter">
-            Previous
-        </a>
-    }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">&laquo; Previous</span>
+            </li>
+        }
 
-    <span> Page @Model.CurrentPage / @Model.TotalPages </span>
+        <li class="page-item active">
+            <span class="page-link">
+                @Model.CurrentPage / @Model.TotalPages
+            </span>
+        </li>
 
-    @if (Model.CurrentPage < Model.TotalPages)
-    {
-        <a asp-page="./Index"
-               asp-route-pageIndex="@(Model.CurrentPage + 1)"
-               asp-route-searchString="@Model.CurrentFilter">
-            Next
-        </a>
-    }
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <li class="page-item">
+                <a class="page-link"
+                       asp-page="./Index"
+                       asp-route-pageIndex="@(Model.CurrentPage + 1)"
+                       asp-route-searchString="@Model.CurrentFilter">
+                    Next &raquo;
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">Next &raquo;</span>
+            </li>
+        }
+    </ul>
 </div>

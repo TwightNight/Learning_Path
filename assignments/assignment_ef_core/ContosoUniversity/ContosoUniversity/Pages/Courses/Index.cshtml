@@ -5,50 +5,122 @@
     ViewData["Title"] = "Courses";
 }
 
-<h1>Index</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
 
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Courses[0].CourseID)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Courses[0].Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Courses[0].Credits)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Courses[0].Department)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model.Courses) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.CourseID)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Credits)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Department.Name)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.CourseID">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.CourseID">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.CourseID">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <h1 class="mb-0">
+        <i class="fas fa-book text-primary"></i>
+        Courses
+    </h1>
+
+    <a asp-page="Create" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Create New
+    </a>
+
+</div>
+
+<div class="card shadow-sm">
+
+    <div class="card-header">
+        <h3 class="card-title mb-0">
+            Course List
+        </h3>
+    </div>
+
+    <div class="card-body table-responsive p-0">
+
+        <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+                <tr>
+                    <th width="120">
+                        @Html.DisplayNameFor(model => model.Courses[0].CourseID)
+                    </th>
+
+                    <th>
+                        @Html.DisplayNameFor(model => model.Courses[0].Title)
+                    </th>
+
+                    <th width="120">
+                        @Html.DisplayNameFor(model => model.Courses[0].Credits)
+                    </th>
+
+                    <th>
+                        @Html.DisplayNameFor(model => model.Courses[0].Department)
+                    </th>
+
+                    <th width="180"></th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model.Courses)
+                {
+                    <tr>
+
+                        <!-- Course ID -->
+                        <td>
+                            <span class="badge bg-dark fs-6">
+                                @item.CourseID
+                            </span>
+                        </td>
+
+                        <!-- Title -->
+                        <td>
+                            <div class="fw-semibold">
+                                @item.Title
+                            </div>
+                        </td>
+
+                        <!-- Credits -->
+                        <td>
+                            <span class="badge bg-success">
+                                @item.Credits Credits
+                            </span>
+                        </td>
+
+                        <!-- Department -->
+                        <td>
+                            <span class="badge bg-info text-dark">
+                                @item.Department.Name
+                            </span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td>
+
+                            <div class="btn-group">
+
+                                <a asp-page="./Edit"
+                                       asp-route-id="@item.CourseID"
+                                       class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <a asp-page="./Details"
+                                       asp-route-id="@item.CourseID"
+                                       class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <a asp-page="./Delete"
+                                       asp-route-id="@item.CourseID"
+                                       class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

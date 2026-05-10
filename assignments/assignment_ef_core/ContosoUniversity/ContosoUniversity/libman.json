@@ -1,0 +1,10 @@
+{
+  "version": "3.0",
+  "defaultProvider": "unpkg",
+  "libraries": [
+    {
+      "library": "admin-lte@4.0.0-rc7",
+      "destination": "wwwroot/admin-lte/"
+    }
+  ]
+}
