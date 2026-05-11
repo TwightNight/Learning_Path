@@ -1,73 +1,72 @@
 ﻿@page
 @model ContosoUniversity.Pages.Instructors.EditModel
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Instructor";
 }
-<h2>Edit</h2>
-<h4>Instructor</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
+
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title">Edit Instructor</h3>
+    </div>
+
+    <form method="post">
+        <div class="card-body">
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Instructor.Id" />
+
             <div class="form-group">
-                <label asp-for="Instructor.LastName" class="control-label"></label>
+                <label asp-for="Instructor.LastName"></label>
                 <input asp-for="Instructor.LastName" class="form-control" />
                 <span asp-validation-for="Instructor.LastName" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="Instructor.FirstMidName" class="control-label"></label>
+                <label asp-for="Instructor.FirstMidName"></label>
                 <input asp-for="Instructor.FirstMidName" class="form-control" />
-                <span asp-validation-for="Instructor.FirstMidName" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="Instructor.HireDate" class="control-label"></label>
+                <label asp-for="Instructor.HireDate"></label>
                 <input asp-for="Instructor.HireDate" class="form-control" />
-                <span asp-validation-for="Instructor.HireDate" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="Instructor.OfficeAssignment.Location" class="control-label"></label>
+                <label asp-for="Instructor.OfficeAssignment.Location"></label>
                 <input asp-for="Instructor.OfficeAssignment.Location" class="form-control" />
-                <span asp-validation-for="Instructor.OfficeAssignment.Location" class="text-danger" />
             </div>
-            <div class="form-group">
-                <div class="table">
-                    <table>
-                        <tr>
-                            @{
-                                int cnt = 0;
 
-                                foreach (var course in Model.AssignedCourseDataList)
+            <div class="form-group">
+                <label>Assigned Courses</label>
+                <table class="table table-bordered">
+                    <tr>
+                        @{
+                            int cnt = 0;
+                            foreach (var course in Model.AssignedCourseDataList)
+                            {
+                                if (cnt++ % 3 == 0)
                                 {
-                                    if (cnt++ % 3 == 0)
-                                    {
-                                        @:</tr><tr>
-                                    }
-                                    @:<td>
-                                        <input type="checkbox"
-                                               name="selectedCourses"
-                                               value="@course.CourseID"
-                                               @(Html.Raw(course.Assigned ? "checked=\"checked\"" : "")) />
-                                               @course.CourseID @:  @course.Title
-                                    @:</td>
+                                    @:</tr><tr>
                                 }
-                                @:</tr>
+
+                                @:<td>
+                                    <input type="checkbox"
+                                           name="selectedCourses"
+                                           value="@course.CourseID"
+                                           @(Html.Raw(course.Assigned ? "checked=\"checked\"" : "")) />
+                                        @course.CourseID <text>-</text> @course.Title
+                                @:</td>
                             }
-                    </table>
-                </div>
+                        }
+                    </tr>
+                </table>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
 
-<div>
-    <a asp-page="./Index">Back to List</a>
-</div>
+        </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+        <div class="card-footer">
+            <input type="submit" value="Save" class="btn btn-primary" />
+            <a asp-page="./Index" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
