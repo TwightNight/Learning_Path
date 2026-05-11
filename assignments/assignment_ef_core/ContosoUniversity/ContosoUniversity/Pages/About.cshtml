@@ -6,16 +6,20 @@
 
 <h2>Student Body Statistics</h2>
 
-<table>
-    <tr>
-        <th>Enrollment Date</th>
-        <th>Students</th>
-    </tr>
-    @foreach(var item in Model.Students)
-    {
+<table class="table table-bordered table-striped">
+    <thead>
         <tr>
-            <td>@Html.DisplayFor(modelItem => item.EnrollmentDate)</td>
-            <td>@Html.DisplayFor(modelItem => item.StudentCount)</td>
+            <th>Enrollment Date</th>
+            <th>Students</th>
         </tr>
-    }
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Students)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.EnrollmentDate)</td>
+                <td>@Html.DisplayFor(modelItem => item.StudentCount)</td>
+            </tr>
+        }
+    </tbody>
 </table>
