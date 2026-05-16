@@ -5,38 +5,38 @@
 ## 🟡 Week 3: ASP.NET Core Web API
 
 ### Day 15: Intro to ASP.NET Core Web API
-- [ ] Understand HTTP Methods: GET, POST, PUT, DELETE
-- [ ] Understand Status Codes: 200, 201, 400, 404, 500
-- [ ] Differentiate API Controllers vs Minimal APIs
-- [ ] Run `dotnet new webapi`, explore the default boilerplate
-- [ ] Create a `ProductsController`
-- [ ] Add an `[HttpGet]` that returns a hardcoded list of products
-- [ ] Test the API via Swagger or Postman
+- [x] Understand HTTP Methods: GET, POST, PUT, DELETE
+- [x] Understand Status Codes: 200, 201, 400, 404, 500
+- [x] Differentiate API Controllers vs Minimal APIs
+- [x] Run `dotnet new webapi`, explore the default boilerplate
+- [x] Create a `ProductsController`
+- [x] Add an `[HttpGet]` that returns a hardcoded list of products
+- [x] Test the API via Swagger or Postman
 
 **Deliverable:** A running Web API tested successfully via Swagger/Postman
 
 ---
 
 ### Day 16: Building CRUD Endpoints
-- [ ] Learn route parameters: `[FromRoute]`
-- [ ] Learn query parameters: `[FromQuery]`
-- [ ] Learn body payload: `[FromBody]`
-- [ ] Implement full CRUD in `ProductsController`
-- [ ] Integrate with EF Core `DbContext` from Week 2
-- [ ] Test `POST /api/products` saving data to the DB
-- [ ] Test `GET`, `PUT`, `DELETE` against a real database
+- [x] Learn route parameters: `[FromRoute]`
+- [x] Learn query parameters: `[FromQuery]`
+- [x] Learn body payload: `[FromBody]`
+- [x] Implement full CRUD in `ProductsController`
+- [x] Integrate with EF Core `DbContext` from Week 2
+- [x] Test `POST /api/products` saving data to the DB
+- [x] Test `GET`, `PUT`, `DELETE` against a real database
 
 **Deliverable:** Fully functional RESTful endpoints interacting with a database
 
 ---
 
 ### Day 17: Validation & Model Binding
-- [ ] Learn Data Annotations: `[Required]`, `[MaxLength]`, `[Range]`
-- [ ] Understand how ModelState validation works
-- [ ] Create a `CreateProductDto` with validation rules
-- [ ] Add rules: `Price > 0`, `Name` is required
-- [ ] Test sending bad data via Postman, observe the `400 Bad Request` response
-- [ ] Customize error messages in the response body
+- [x] Learn Data Annotations: `[Required]`, `[MaxLength]`, `[Range]`
+- [x] Understand how ModelState validation works
+- [x] Create a `CreateProductDto` with validation rules
+- [x] Add rules: `Price > 0`, `Name` is required
+- [x] Test sending bad data via Postman, observe the `400 Bad Request` response
+- [x] Customize error messages in the response body
 
 ---
 
