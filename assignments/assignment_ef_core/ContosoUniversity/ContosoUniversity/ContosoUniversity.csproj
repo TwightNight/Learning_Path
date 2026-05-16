@@ -1,20 +1,42 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-	<NuGetAudit>false</NuGetAudit>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<NuGetAudit>false</NuGetAudit>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.7" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+	</ItemGroup>
+	<Target Name="SyncContentsToWwwroot" BeforeTargets="Build">
 
+		 <!--Step 1: Find file exists in wwwroot but donot exist in Contents--> 
+		<ItemGroup>
+			<WwwrootFiles Include="$(ProjectDir)wwwroot\**\*" />
+			<ContentsFiles Include="$(ProjectDir)Contents\**\*" />
+			<OrphanFiles Include="@(WwwrootFiles)"
+						 Exclude="@(ContentsFiles->'$(ProjectDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" />
+		</ItemGroup>
+
+		 <!--Step 2: Delete file--> 
+		<Delete Files="@(OrphanFiles)" />
+
+		 <!--Step 3: Copy from Contents to wwwroot--> 
+		<Copy SourceFiles="@(ContentsFiles)"
+			  DestinationFiles="@(ContentsFiles->'$(ProjectDir)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+			  SkipUnchangedFiles="true" />
+
+	</Target>
+
+	<!--<Target Name="CleanContentsCopy" AfterTargets="Clean">
+		<RemoveDir Directories="$(ProjectDir)wwwroot\" />
+	</Target>-->
 </Project>
