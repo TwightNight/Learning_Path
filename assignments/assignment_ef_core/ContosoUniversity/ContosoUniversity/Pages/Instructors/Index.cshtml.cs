@@ -1,6 +1,7 @@
 ﻿using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Models.SchoolViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace ContosoUniversity.Pages.Instructors
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         private readonly ContosoUniversity.Data.SchoolContext _context;

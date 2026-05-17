@@ -1,0 +1,128 @@
+﻿@page
+@model ContosoUniversity.Pages.Departments.DetailsModel
+
+@{
+    ViewData["Title"] = "Department Details";
+}
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-page="./Index">Departments</a></li>
+        <li class="breadcrumb-item active">Details</li>
+    </ol>
+</div>
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Department Details</h1>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Cột trái: Thông tin Department -->
+            <div class="col-md-5">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            General Information
+                        </h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <strong><i class="fas fa-building mr-1"></i> @Html.DisplayNameFor(model => model.Department.Name)</strong>
+                        <p class="text-muted">
+                            @Html.DisplayFor(model => model.Department.Name)
+                        </p>
+                        <hr>
+
+                        <strong><i class="fas fa-money-bill-wave mr-1"></i> @Html.DisplayNameFor(model => model.Department.Budget)</strong>
+                        <p class="text-muted">
+                            @Html.DisplayFor(model => model.Department.Budget)
+                        </p>
+                        <hr>
+
+                        <strong><i class="far fa-calendar-alt mr-1"></i> @Html.DisplayNameFor(model => model.Department.StartDate)</strong>
+                        <p class="text-muted">
+                            @Html.DisplayFor(model => model.Department.StartDate)
+                        </p>
+                        <hr>
+
+                        <strong><i class="fas fa-user-tie mr-1"></i> @Html.DisplayNameFor(model => model.Department.Administrator)</strong>
+                        <p class="text-muted">
+                            @* Sử dụng FullName sẽ đẹp hơn thay vì FirstMidName *@
+                            @(Model.Department.Administrator != null ? Model.Department.Administrator.FullName : "No Administrator Assigned")
+                        </p>
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                        <a asp-page="./Edit" asp-route-id="@Model.Department.DepartmentID" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-page="./Index" class="btn btn-default float-right">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Danh sách Course -->
+            <div class="col-md-7">
+                <div class="card card-success card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-book mr-1"></i>
+                            Related Courses
+                        </h3>
+                        <div class="card-tools">
+                            <span class="badge badge-success">@Model.Department.Courses?.Count Courses</span>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>Course Number</th>
+                                    <th>Title</th>
+                                    <th>Credits</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Department.Courses != null && Model.Department.Courses.Any())
+                                {
+                                    foreach (var course in Model.Department.Courses)
+                                    {
+                                        <tr>
+                                            <td>@course.CourseID</td>
+                                            <td>@course.Title</td>
+                                            <td>
+                                                @course.Credits
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">
+                                            <em>No courses assigned to this department.</em>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

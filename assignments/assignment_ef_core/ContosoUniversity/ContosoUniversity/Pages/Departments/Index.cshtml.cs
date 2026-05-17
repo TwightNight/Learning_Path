@@ -9,7 +9,7 @@ using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using Microsoft.AspNetCore.Authorization;
 
-namespace ContosoUniversity.Pages.Courses
+namespace ContosoUniversity.Pages.Departments
 {
     [Authorize]
     public class IndexModel : PageModel
@@ -21,12 +21,12 @@ namespace ContosoUniversity.Pages.Courses
             _context = context;
         }
 
-        public IList<Course> Courses { get;set; } = default!;
+        public IList<Department> Department { get;set; } = default!;
 
         public async Task OnGetAsync()
         {
-            Courses = await _context.Courses
-                .Include(c => c.Department)
+            Department = await _context.Departments
+                .Include(d => d.Administrator)
                 .AsNoTracking()
                 .ToListAsync();
         }

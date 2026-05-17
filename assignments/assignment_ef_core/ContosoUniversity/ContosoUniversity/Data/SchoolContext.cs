@@ -20,6 +20,7 @@ namespace ContosoUniversity.Data
         public DbSet<Instructor> Instructors { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<OfficeAssignment> OfficeAssignments { get; set; }
+        public DbSet<User> Users { get; set; }
 
         //public DbSet<ContosoUniversity.Models.Student> Student { get; set; } = default!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -30,6 +31,7 @@ namespace ContosoUniversity.Data
             modelBuilder.Entity<Enrollment>().ToTable(nameof(Enrollment));
             modelBuilder.Entity<Student>().ToTable(nameof(Student));
             modelBuilder.Entity<Instructor>().ToTable(nameof(Instructor));
+            modelBuilder.Entity<User>().ToTable(nameof(User));
         }
     }
 }

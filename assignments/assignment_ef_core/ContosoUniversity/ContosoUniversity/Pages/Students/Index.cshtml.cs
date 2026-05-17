@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ContosoUniversity.Pages.Students
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         private readonly ContosoUniversity.Data.SchoolContext _context;
@@ -23,20 +25,31 @@ namespace ContosoUniversity.Pages.Students
         public string DateSort { get; set; }
         public string CurrentFilter { get; set; }
         //public string CurrentSort { get; set; }
+
+        //filter date
+        public DateTime? CurrentFromDate { get; set; }
+        public DateTime? CurrentToDate { get; set; }
+
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public IList<Student> Students { get;set; } = default!;
 
-        public async Task OnGetAsync(string sortOrder, string searchString, int pageIndex = 1)
+        public async Task OnGetAsync(
+            string sortOrder, 
+            string searchString,
+            DateTime? fromDate,
+            DateTime? toDate,
+            int pageIndex = 1)
         {
             // number of records per page
-            int pageSize = 3;
+            int pageSize = 5;
 
             NameSort = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             DateSort = sortOrder == "Date" ? "date_desc" : "Date";
 
             CurrentFilter = searchString;
-
+            CurrentFromDate = fromDate;
+            CurrentToDate = toDate;
 
             //The method uses LINQ to Entities to specify the column to sort by.
             //The code initializes an IQueryable<Student> before the switch statement, and modifies it in the switch statement
@@ -47,8 +60,18 @@ namespace ContosoUniversity.Pages.Students
             if (!String.IsNullOrEmpty(searchString))
             {
                 studentsIQ = studentsIQ.Where(s => s.LastName.Contains(searchString)
-                                       || s.FirstMidName.Contains(searchString));
+                                       || s.FirstMidName.Contains(searchString)
+                                       || (s.LastName + " " + s.FirstMidName).Contains(searchString));
             }
+            if (fromDate.HasValue)
+            {
+                studentsIQ = studentsIQ.Where(s => s.EnrollmentDate >= fromDate.Value);
+            }
+            if (toDate.HasValue)
+            {
+                studentsIQ = studentsIQ.Where(s => s.EnrollmentDate <= toDate.Value);
+            }
+
             switch (sortOrder)
             {
                 // sort following student name

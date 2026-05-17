@@ -1,0 +1,106 @@
+﻿@page
+@model ContosoUniversity.Pages.Departments.EditModel
+
+@{
+    ViewData["Title"] = "Edit Department";
+}
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-page="./Index">Departments</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    </ol>
+</div>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Edit Department</h1>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card card-info card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-edit mr-1"></i> Update Information
+                        </h3>
+                    </div>
+                    
+                    <form method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-warning text-sm"></div>
+                            <input type="hidden" asp-for="Department.DepartmentID" />
+                            @* Concurrency token (RowVersion) nếu bạn đang dùng trong hướng dẫn Contoso *@
+                            @* <input type="hidden" asp-for="Department.RowVersion" /> *@
+
+                            <div class="form-group">
+                                <label asp-for="Department.Name" class="control-label"></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                    </div>
+                                    <input asp-for="Department.Name" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Department.Name" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Department.Budget" class="control-label"></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-money-bill-alt"></i></span>
+                                    </div>
+                                    <input asp-for="Department.Budget" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Department.Budget" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Department.StartDate" class="control-label"></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                    </div>
+                                    <input asp-for="Department.StartDate" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Department.StartDate" class="text-danger text-sm"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Department.InstructorID" class="control-label">Administrator</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                    </div>
+                                    <select asp-for="Department.InstructorID" class="form-control" asp-items="ViewBag.InstructorID">
+                                        <option value="">-- Select Administrator --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Department.InstructorID" class="text-danger text-sm"></span>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white">
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-save mr-1"></i> Save Changes
+                            </button>
+                            <a asp-page="./Index" class="btn btn-default float-right">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

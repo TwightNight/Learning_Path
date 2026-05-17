@@ -1,0 +1,104 @@
+﻿@page
+@model ContosoUniversity.Pages.Departments.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete Department";
+}
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-page="./Index">Departments</a></li>
+        <li class="breadcrumb-item active">Delete</li>
+    </ol>
+</div>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="text-danger">Delete Department</h1>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <!-- Cảnh báo nguy hiểm -->
+        <div class="alert alert-danger alert-dismissible">
+            <h5><i class="icon fas fa-exclamation-triangle"></i> Warning!</h5>
+            Are you sure you want to delete this department? This action cannot be undone.
+        </div>
+
+        <div class="row">
+            <!-- Thông tin chi tiết -->
+            <div class="col-md-6">
+                <div class="card card-danger card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Department Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Department.Name)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Department.Name)</dd>
+
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Department.Budget)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Department.Budget)</dd>
+
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Department.StartDate)</dt>
+                            <dd class="col-sm-8">@Html.DisplayFor(model => model.Department.StartDate)</dd>
+
+                            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Department.Administrator)</dt>
+                            <dd class="col-sm-8">@(Model.Department.Administrator?.FullName ?? "N/A")</dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer">
+                        <form method="post">
+                            <input type="hidden" asp-for="Department.DepartmentID" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash mr-1"></i> Confirm Delete
+                            </button>
+                            <a asp-page="./Index" class="btn btn-default float-right">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách khóa học liên quan (nếu có nạp trong PageModel) -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-gray">
+                        <h3 class="card-title">Linked Courses</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Department.Courses != null && Model.Department.Courses.Any())
+                                {
+                                    foreach (var item in Model.Department.Courses)
+                                    {
+                                        <tr>
+                                            <td>@item.CourseID</td>
+                                            <td>@item.Title</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="2" class="text-center text-muted">No courses linked.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

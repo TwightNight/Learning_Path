@@ -1,18 +1,164 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="row mb-auto">
-    <div class="col-md-4">
-        <div class="row no-gutters border mb-4">
-            <div class="col p-4 mb-4 ">
+<style>
+    .small-box .icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 65px;
+        opacity: 0.18;
+        transition: all 0.3s ease;
+    }
+
+        .small-box .icon i {
+            background: rgba(255,255,255,0.18);
+            padding: 18px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(4px);
+        }
+
+    .small-box:hover .icon {
+        transform: scale(1.12) rotate(-8deg);
+        opacity: 0.28;
+    }
+
+    .small-box {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        transition: all 0.3s ease;
+    }
+
+        .small-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+        }
+
+        .small-box .inner h3 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .small-box .inner p {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+</style>
+
+<!-- ROW 1: STATISTICS BLOCKS (OVERVIEW) -->
+<div class="row">
+    <!-- Students Statistic -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner text-white">
+                <h3>@Model.TotalStudents</h3>
+                <p>Total Students</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <a asp-page="/Students/Index" class="small-box-footer link-light text-decoration-none">
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Courses Statistic -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner text-white">
+                <h3>@Model.TotalCourses</h3>
+                <p>Courses</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <a asp-page="/Courses/Index" class="small-box-footer link-light text-decoration-none">
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Instructors Statistic -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>@Model.TotalInstructors</h3>
+                <p>Instructors</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <a asp-page="/Instructors/Index" class="small-box-footer link-dark text-decoration-none">
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Departments Statistic -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner text-white">
+                <h3>@Model.TotalDepartments</h3>
+                <p>Departments</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-building"></i>
+            </div>
+            <a href="/Departments/Index" class="small-box-footer link-light text-decoration-none">
+                More info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ROW 2: INTRODUCTION AND NEWS -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <!-- Introduction Card -->
+        <div class="card card-primary card-outline shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title m-0"><i class="fas fa-info-circle text-primary"></i> About the System</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title mb-2">Contoso University Web App</h6>
                 <p class="card-text">
-                    Contoso University is a sample application that
-                    demonstrates how to use Entity Framework Core in an
-                    ASP.NET Core Razor Pages web app.
+                    Contoso University is a sample application that demonstrates how to use Entity Framework Core in an ASP.NET Core Razor Pages web app.
                 </p>
+                <p class="card-text text-muted">
+                    The system has been integrated with the elegant <b>AdminLTE</b> interface, secured by <b>JWT Authentication</b>, and provides smooth data manipulation.
+                </p>
+                <a href="https://learn.microsoft.com/en-us/aspnet/core/data/ef-rp/intro" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-book-reader"></i> Read EF Core Docs
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Notice Board Card (Mock UI) -->
+        <div class="card card-success card-outline shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title m-0"><i class="fas fa-bullhorn text-success"></i> Notice Board</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        Welcome, Administrator. You have successfully logged in.
+                        <span class="badge bg-primary rounded-pill">New</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        JWT Authentication feature updated successfully.
+                        <span class="badge bg-info rounded-pill">Admin</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>

@@ -1,0 +1,119 @@
+﻿@page
+@model ContosoUniversity.Pages.Departments.CreateModel
+
+@{
+    ViewData["Title"] = "Create Department";
+}
+<div class="col-sm-6">
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a asp-page="./Index">Departments</a></li>
+        <li class="breadcrumb-item active">Create</li>
+    </ol>
+</div>
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1>Create Department</h1>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <div class="container-fluid">
+        <!-- Đưa form ra giữa và cho độ rộng vừa phải (col-md-8) -->
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-plus-circle mr-1"></i>
+                            New Department Information
+                        </h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                    <form method="post">
+                        <div class="card-body">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger text-sm"></div>
+
+                            <!-- Name Field -->
+                            <div class="form-group">
+                                <label asp-for="Department.Name" class="control-label">Department Name <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                    </div>
+                                    <input asp-for="Department.Name" class="form-control" placeholder="Enter department name" />
+                                </div>
+                                <span asp-validation-for="Department.Name" class="text-danger text-sm"></span>
+                            </div>
+
+                            <!-- Budget Field -->
+                            <div class="form-group">
+                                <label asp-for="Department.Budget" class="control-label">Budget <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                    </div>
+                                    <input asp-for="Department.Budget" class="form-control" placeholder="Enter budget amount" />
+                                </div>
+                                <span asp-validation-for="Department.Budget" class="text-danger text-sm"></span>
+                            </div>
+
+                            <!-- Start Date Field -->
+                            <div class="form-group">
+                                <label asp-for="Department.StartDate" class="control-label">Start Date <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                                    </div>
+                                    <input asp-for="Department.StartDate" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Department.StartDate" class="text-danger text-sm"></span>
+                            </div>
+
+                            <!-- Administrator / Instructor Field -->
+                            <div class="form-group">
+                                <label asp-for="Department.InstructorID" class="control-label">Administrator</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                    </div>
+                                    <select asp-for="Department.InstructorID" class="form-control" asp-items="ViewBag.InstructorID">
+                                        <option value="">-- Select Administrator --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="Department.InstructorID" class="text-danger text-sm"></span>
+                            </div>
+                            
+                        </div>
+                        <!-- /.card-body -->
+                        <!-- Card Footer chứa các nút bấm -->
+                        <div class="card-footer bg-white">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i> Create
+                            </button>
+                            <a asp-page="Index" class="btn btn-default float-right">
+                                <i class="fas fa-times mr-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.card -->
+                
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
