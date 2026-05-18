@@ -1,5 +1,3 @@
-Here is the English translation of the technical document:
-
 # SYSTEM ARCHITECTURE AND EXECUTION MECHANISM IN THE .NET PLATFORM
 
 The architecture of .NET is designed based on the principles of platform independence, runtime hardware optimization, and memory safety. Below is an in-depth analysis of the core components and concepts that make up this ecosystem.
