@@ -11,7 +11,7 @@ namespace ContosoUniversity.Pages.Instructors
     {
         public List<AssignedCourseData> AssignedCourseDataList;
 
-        public void PopulateAssignedCourseData(SchoolContext context,
+        public void PopulateAssignedCourseData(ISchoolContext context,
                                                Instructor instructor)
         {
             var allCourses = context.Courses;

@@ -12,6 +12,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddDbContext<SchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SchoolContext") 
     ?? throw new InvalidOperationException("Connection string 'SchoolContext' not found.")));
+builder.Services.AddScoped<ISchoolContext, SchoolContext>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

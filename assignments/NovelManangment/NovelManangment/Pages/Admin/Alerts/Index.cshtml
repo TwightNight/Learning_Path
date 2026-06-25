@@ -1,0 +1,152 @@
+﻿@page "/admin/alerts"
+@model NovelManangment.Pages.Admin.Alerts.IndexModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = "Site Alerts";
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <h4 class="fw-bold mb-0"><i class="fas fa-bullhorn me-2 text-danger"></i>Site Alerts</h4>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+
+        <!-- Create form -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white fw-semibold">
+                <i class="fas fa-plus me-2 text-primary"></i>New Alert
+            </div>
+            <div class="card-body">
+                <form method="post" asp-page-handler="Create">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-medium">Title</label>
+                            <input type="text" name="title" class="form-control form-control-sm"
+                                   placeholder="e.g. Policy update" required maxlength="200" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-medium">Type</label>
+                            <select name="type" class="form-select form-select-sm">
+                                <option value="0">Info</option>
+                                <option value="1">Warning</option>
+                                <option value="2">Danger</option>
+                                <option value="3">Success</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-medium">Expires at</label>
+                            <input type="datetime-local" name="expiresAt"
+                                   class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="checkbox"
+                                       name="isActive" value="true" checked id="chkActive" />
+                                <label class="form-check-label small" for="chkActive">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-medium">Content</label>
+                            <textarea name="content" class="form-control form-control-sm" rows="2"
+                                      placeholder="Alert message..." required maxlength="1000"></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary btn-sm px-4">
+                                <i class="fas fa-plus me-1"></i>Create
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alert list -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">
+                <i class="fas fa-list me-2"></i>All Alerts
+                <span class="badge text-bg-secondary ms-2">@Model.Alerts.Count</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Title</th>
+                            <th>Content</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                            <th>Created</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Alerts.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No alerts yet.</td>
+                            </tr>
+                        }
+                        @foreach (var a in Model.Alerts)
+                        {
+                            var (typeCss, typeLabel) = a.Type switch
+                            {
+                                AlertType.Warning => ("text-bg-warning", "Warning"),
+                                AlertType.Danger => ("text-bg-danger", "Danger"),
+                                AlertType.Success => ("text-bg-success", "Success"),
+                                _ => ("text-bg-info", "Info")
+                            };
+                            var expired = a.ExpiresAt.HasValue && a.ExpiresAt < DateTime.Now;
+                            <tr class="@(!a.IsActive || expired ? "opacity-50" : "")">
+                                <td class="ps-3 fw-medium">@a.Title</td>
+                                <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    @a.Content
+                                </td>
+                                <td><span class="badge @typeCss">@typeLabel</span></td>
+                                <td>
+                                    @if (expired)
+                                    {
+                                        <span class="badge text-bg-secondary">Expired</span>
+                                    }
+                                    else if (a.IsActive)
+                                    {
+                                        <span class="badge text-bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge text-bg-secondary">Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-muted">
+                                    @(a.ExpiresAt.HasValue ? a.ExpiresAt.Value.ToString("dd MMM yyyy HH:mm") : "—")
+                                </td>
+                                <td class="text-muted">@a.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td class="text-end pe-3">
+                                    <form method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@a.Id" />
+                                        <button asp-page-handler="Toggle"
+                                                class="btn btn-sm btn-outline-secondary me-1"
+                                                title="@(a.IsActive ? "Deactivate" : "Activate")">
+                                            <i class="fas fa-@(a.IsActive ? "eye-slash" : "eye")"></i>
+                                        </button>
+                                        <button asp-page-handler="Delete"
+                                                class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this alert?')"
+                                                title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

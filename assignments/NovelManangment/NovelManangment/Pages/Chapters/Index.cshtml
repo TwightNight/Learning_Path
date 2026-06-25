@@ -1,0 +1,624 @@
+﻿@page "/novels/{slug}/chapters/{chSlug}"
+@model NovelManangment.Pages.Chapters.IndexModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = Model.Chapter.Title;
+    var ch    = Model.Chapter;
+    var novel = Model.Novel;
+    var vol   = Model.Volume;
+
+    string prevUrl = Model.PrevChapter is not null
+        ? $"/novels/{novel.Slug}/chapters/{Model.PrevChapter.Slug}" : "#";
+    string nextUrl = Model.NextChapter is not null
+        ? $"/novels/{novel.Slug}/chapters/{Model.NextChapter.Slug}" : "#";
+}
+
+<!-- Reading toolbar (fixed right) -->
+<div id="readingToolbar" style="position:fixed;right:0;top:50%;transform:translateY(-50%);
+     z-index:1000;display:flex;flex-direction:column;gap:0;
+     background:#fff;border:1px solid #dee2e6;border-radius:8px 0 0 8px;
+     box-shadow:0 2px 12px rgba(0,0,0,.1);overflow:hidden;">
+
+    <!-- Prev chapter -->
+    <a href="@prevUrl"
+       class="toolbar-btn @(Model.PrevChapter is null ? "disabled" : "")"
+       title="Previous chapter">
+        <i class="fas fa-step-backward"></i>
+    </a>
+
+    <!-- Novel detail -->
+    <a href="/novels/@novel.Slug" class="toolbar-btn" title="Novel detail">
+        <i class="fas fa-home"></i>
+    </a>
+
+    <!-- Font size -->
+    <button class="toolbar-btn" onclick="openPanel('fontPanel')" title="Reading settings">
+        <span style="font-weight:700;font-family:serif;">A</span>
+    </button>
+
+    <!-- Chapter info -->
+    <button class="toolbar-btn" onclick="openPanel('infoPanel')" title="Chapter info">
+        <i class="fas fa-info"></i>
+    </button>
+
+    <!-- Next chapter -->
+    <a href="@nextUrl"
+       class="toolbar-btn @(Model.NextChapter is null ? "disabled" : "")"
+       title="Next chapter">
+        <i class="fas fa-step-forward"></i>
+    </a>
+</div>
+
+<!-- Font / theme panel (slides in) -->
+<div id="fontPanel" class="side-panel">
+    <div class="side-panel-header">
+        <span class="fw-semibold">Reading Settings</span>
+        <button onclick="closePanel('fontPanel')" class="btn btn-sm btn-link p-0">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="p-3 d-flex flex-column gap-3" style="font-size:14px;">
+        <div>
+            <label class="text-muted small d-block mb-1">Font size</label>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="changeFontSize(-1)">A−</button>
+                <span id="fontSizeLabel">18px</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="changeFontSize(1)">A+</button>
+            </div>
+        </div>
+        <div>
+            <label class="text-muted small d-block mb-1">Line height</label>
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="changeLineHeight(-.1)">−</button>
+                <span id="lineHeightLabel">1.9</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="changeLineHeight(.1)">+</button>
+            </div>
+        </div>
+        <div>
+            <label class="text-muted small d-block mb-1">Reading width</label>
+            <input type="range" class="form-range" min="480" max="960" step="40"
+                   value="740" oninput="changeWidth(this.value)" />
+        </div>
+        <div>
+            <label class="text-muted small d-block mb-1">Theme</label>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="theme-btn" data-bg="#fdf6e3" data-fg="#3c3021" title="Sepia">Aa</button>
+                <button class="theme-btn" data-bg="#ffffff" data-fg="#212529" title="White"
+                        style="background:#fff;color:#212529;border:1px solid #dee2e6;">Aa</button>
+                <button class="theme-btn" data-bg="#1a1a2e" data-fg="#e0e0e0" title="Dark"
+                        style="background:#1a1a2e;color:#e0e0e0;">Aa</button>
+                <button class="theme-btn" data-bg="#e8f5e9" data-fg="#1b3a1f" title="Green"
+                        style="background:#e8f5e9;color:#1b3a1f;">Aa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info panel -->
+<div id="infoPanel" class="side-panel">
+    <div class="side-panel-header">
+        <span class="fw-semibold">Chapter Info</span>
+        <button onclick="closePanel('infoPanel')" class="btn btn-sm btn-link p-0">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="p-3" style="font-size:13px;">
+        <table class="table table-sm table-borderless mb-0">
+            <tr><td class="text-muted">Novel</td><td class="fw-medium">@novel.Title</td></tr>
+            <tr><td class="text-muted">Volume</td><td>@vol.Title</td></tr>
+            <tr><td class="text-muted">Chapter</td><td>@ch.Title</td></tr>
+            <tr><td class="text-muted">Word count</td><td>@ch.WordCount.ToString("N0")</td></tr>
+            <tr><td class="text-muted">Views</td><td>@ch.ViewCount.ToString("N0")</td></tr>
+            <tr><td class="text-muted">Published</td><td>@ch.CreatedAt.ToString("dd MMM yyyy")</td></tr>
+            @if (ch.LastUpdatedAt.HasValue)
+            {
+                <tr><td class="text-muted">Updated</td><td>@ch.LastUpdatedAt.Value.ToString("dd MMM yyyy")</td></tr>
+            }
+        </table>
+    </div>
+</div>
+
+<!-- Panel backdrop -->
+<div id="panelBackdrop" onclick="closeAll()" style="display:none;position:fixed;inset:0;z-index:998;"></div>
+
+<!-- Main reading area -->
+<div id="readerWrap" style="background:#fdf6e3;min-height:100vh;padding:40px 16px 80px;">
+    <div id="readerContent" style="max-width:740px;margin:0 auto;">
+
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h5 class="fw-semibold mb-1" style="font-size:1rem;color:#6c757d;">@vol.Title</h5>
+            <h1 style="font-size:1.5rem;font-weight:700;margin-bottom:8px;">@ch.Title</h1>
+            <div style="font-size:13px;color:#888;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
+                <span><i class="fas fa-align-left me-1"></i>@ch.WordCount.ToString("N0") words</span>
+                <span><i class="fas fa-eye me-1"></i>@ch.ViewCount.ToString("N0") views</span>
+                <span><i class="fas fa-clock me-1"></i>@ch.CreatedAt.ToString("dd MMM yyyy")</span>
+            </div>
+        </div>
+
+        <!-- Chapter content (Rich Text HTML) -->
+        <div id="chapterBody" style="font-size:18px;line-height:1.9;font-family:'Georgia',serif;color:#3c3021;">
+            @Html.Raw(ch.Content ?? "<p class='text-muted text-center'>No content available.</p>")
+        </div>
+
+        <!-- Nav bottom -->
+        <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top">
+            <a href="@prevUrl"
+               class="btn btn-outline-secondary @(Model.PrevChapter is null ? "disabled" : "")">
+                <i class="fas fa-chevron-left me-1"></i> Previous
+            </a>
+            <a href="/novels/@novel.Slug" class="btn btn-outline-primary">
+                <i class="fas fa-book me-1"></i> Novel
+            </a>
+            <a href="@nextUrl"
+               class="btn btn-outline-secondary @(Model.NextChapter is null ? "disabled" : "")">
+                Next <i class="fas fa-chevron-right ms-1"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ── Comments Section ── -->
+<div class="mt-5 pt-4 border-top px-3 px-md-4" id="chapterComments">
+    
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h5 class="fw-bold mb-0 d-flex align-items-center gap-2" style="font-size:1.1rem;">
+            <i class="fas fa-comments text-primary"></i> 
+            Comments
+            <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2" 
+                  id="chCommentBadge" style="font-size:12px; font-weight:600;">
+                @Model.CommentTotal
+            </span>
+        </h5>
+    </div>
+
+    <!-- Input Form -->
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: rgba(128, 128, 128, 0.05);">
+            <div class="card-body p-3">
+                <textarea id="chCommentInput" class="form-control border-0 shadow-none bg-transparent px-2" 
+                          rows="2" placeholder="What are your thoughts on this chapter?" 
+                          maxlength="2000" style="resize:none; font-size:14.5px; line-height:1.6;"></textarea>
+                
+                <hr class="my-2 border-secondary opacity-10">
+                
+                <div class="d-flex justify-content-between align-items-center px-2">
+                    <small class="text-muted" style="font-size:12px;">
+                        <span id="chCharCount">0</span> / 2000
+                    </small>
+                    <button class="btn btn-primary btn-sm rounded-pill px-4 py-1 fw-medium shadow-sm" 
+                            onclick="postChapterComment()" style="transition: transform 0.1s;">
+                        Post <i class="fas fa-paper-plane ms-1" style="font-size:12px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert border-0 shadow-sm rounded-4 text-center py-4 mb-4" 
+             style="background: rgba(128, 128, 128, 0.05);">
+            <i class="fas fa-lock text-muted mb-2 d-block" style="font-size:1.5rem; opacity:0.5;"></i>
+            <span style="font-size:14px; color:inherit;">
+                Please <a href="/login" class="fw-bold text-decoration-none">Log in</a> to share your thoughts.
+            </span>
+        </div>
+    }
+
+    @{
+    int? currentUserId = User.Identity?.IsAuthenticated == true
+        ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
+        : null;
+    }
+
+    <!-- Comment List -->
+    <div id="chCommentList" class="d-flex flex-column gap-3">
+        @foreach (var c in Model.Comments)
+        {
+            <div class="d-flex gap-3 pb-3 border-bottom border-secondary border-opacity-10">
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                    @if (!string.IsNullOrEmpty(c.AvatarUrl))
+                    {
+                        <!-- Hiển thị ảnh nếu có AvatarUrl -->
+                        <img src="@c.AvatarUrl" alt="@c.DisplayName" class="rounded-circle shadow-sm" 
+                             style="width: 38px; height: 38px; object-fit: cover; border: 1px solid rgba(13, 110, 253, 0.2);" />
+                    }
+                    else
+                    {
+                        <!-- Hiển thị chữ cái đầu nếu không có Avatar -->
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold shadow-sm" 
+                             style="width: 38px; height: 38px; font-size: 14px; background: rgba(13, 110, 253, 0.1); border: 1px solid rgba(13, 110, 253, 0.2);">
+                            @(string.IsNullOrEmpty(c.DisplayName) ? "?" : c.DisplayName[0].ToString().ToUpper())
+                        </div>
+                    }
+                </div>
+                
+                <!-- Content -->
+                <div class="flex-grow-1" style="min-width: 0;">
+                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                        <span class="fw-semibold" style="font-size:14px;">@c.DisplayName</span>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (c.UserId == currentUserId || User.IsInRole("Admin"))
+                            {
+                                <button class="btn btn-link p-0 text-muted comment-edit-btn"
+                                        style="font-size:12px;" title="Edit"
+                                        data-id="@c.Id"
+                                        data-content="@c.Content">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn btn-link p-0 text-danger comment-delete-btn"
+                                        style="font-size:12px;" title="Delete"
+                                        data-id="@c.Id">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            }
+                            <span class="text-muted" style="font-size:11px;">
+                                <i class="far fa-clock me-1"></i>@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")
+                            </span>
+                        </div>
+                    </div>
+                    <p class="mb-0" style="font-size:14.5px; line-height:1.6; white-space:pre-wrap; color:inherit; opacity:0.9;">@c.Content</p>
+                </div>
+            </div>
+        }
+
+        <!-- Empty State -->
+        @if (Model.CommentTotal == 0)
+        {
+            <div class="text-center py-5" id="chNoCommentMsg">
+                <i class="far fa-comment-dots fa-2x text-muted mb-2" style="opacity: 0.3;"></i>
+                <p class="mb-0 text-muted" style="font-size:14.5px;">No comments yet. Be the first to start the conversation!</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-4" id="chPager"
+         style="@(Model.CommentTotalPages <= 1 ? "display:none!important;" : "")">
+         
+        <button class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                style="width:36px; height:36px; padding:0; background:rgba(128,128,128,0.1); border:none;" 
+                id="chPrevBtn" onclick="loadChapterComments(chCurrentPage - 1)" disabled>
+            <i class="fas fa-chevron-left" style="font-size:12px; color:inherit;"></i>
+        </button>
+
+        <span class="fw-medium" style="font-size:13px; opacity:0.8;">
+            Page <span id="chPageLabel" class="fw-bold">1</span> / <span id="chTotalPagesLabel">@Model.CommentTotalPages</span>
+        </span>
+
+        <button class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                style="width:36px; height:36px; padding:0; background:rgba(128,128,128,0.1); border:none;" 
+                id="chNextBtn" onclick="loadChapterComments(chCurrentPage + 1)"
+                @(Model.CommentTotalPages <= 1 ? "disabled" : "")>
+            <i class="fas fa-chevron-right" style="font-size:12px; color:inherit;"></i>
+        </button>
+    </div>
+</div>
+
+<style>
+/* Toolbar buttons */
+.toolbar-btn {
+    display:flex;align-items:center;justify-content:center;
+    width:44px;height:44px;border:none;background:transparent;
+    color:#555;cursor:pointer;border-top:1px solid #f0f0f0;
+    text-decoration:none;transition:background .15s,color .15s;
+    font-size:15px;
+}
+.toolbar-btn:first-child { border-top:none; }
+.toolbar-btn:hover { background:#f8f9fa;color:#0d6efd; }
+.toolbar-btn.disabled { opacity:.35;pointer-events:none; }
+.toolbar-btn.active { color:#0d6efd; }
+
+/* Side panel */
+.side-panel {
+    position:fixed;right:-320px;top:0;width:300px;height:100vh;
+    background:#fff;border-left:1px solid #dee2e6;
+    box-shadow:-4px 0 20px rgba(0,0,0,.1);z-index:999;
+    transition:right .25s ease;overflow-y:auto;
+}
+.side-panel.open { right:0; }
+.side-panel-header {
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;border-bottom:1px solid #dee2e6;
+    position:sticky;top:0;background:#fff;
+}
+
+/* Theme buttons */
+.theme-btn {
+    width:42px;height:42px;border-radius:6px;border:2px solid transparent;
+    cursor:pointer;font-weight:700;font-size:13px;
+    background:#fdf6e3;color:#3c3021;
+    transition:border-color .15s;
+}
+.theme-btn:hover,.theme-btn.active { border-color:#0d6efd; }
+
+/* Chapter images responsive */
+#chapterBody img { max-width:100%;height:auto;border-radius:6px;margin:8px 0; }
+#chapterBody p   { margin-bottom:1.1em; }
+
+/* Thêm vào <style> trong Index.cshtml */
+#chapterBody abbr {
+    border-bottom: 1px dashed #888;
+    cursor: help;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Custom tooltip đẹp hơn browser mặc định */
+#chapterBody abbr {
+    position: relative;
+}
+#chapterBody abbr::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.82);
+    color: #fff;
+    font-size: 12px;
+    font-family: sans-serif;
+    padding: 4px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 100;
+}
+#chapterBody abbr:hover::after {
+    opacity: 1;
+}
+</style>
+
+
+@* Shared comment edit/delete modal + JS *@
+@await Html.PartialAsync("_CommentActions")
+
+<input type="hidden" name="__RequestVerificationToken"
+       value="@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken" />
+
+@section Scripts {
+<script>
+// ── Reading settings ──────────────────────────────────
+let fontSize   = parseInt(localStorage.getItem('rd_fs')   || 18);
+let lineHeight = parseFloat(localStorage.getItem('rd_lh') || 1.9);
+
+const body = document.getElementById('chapterBody');
+const wrap = document.getElementById('readerWrap');
+
+function applySettings() {
+    body.style.fontSize   = fontSize + 'px';
+    body.style.lineHeight = lineHeight;
+    document.getElementById('fontSizeLabel').textContent   = fontSize + 'px';
+    document.getElementById('lineHeightLabel').textContent = lineHeight.toFixed(1);
+    localStorage.setItem('rd_fs', fontSize);
+    localStorage.setItem('rd_lh', lineHeight);
+}
+function changeFontSize(d)   { fontSize = Math.min(28, Math.max(13, fontSize + d)); applySettings(); }
+function changeLineHeight(d) { lineHeight = Math.min(3, Math.max(1.2, +(lineHeight + d).toFixed(1))); applySettings(); }
+function changeWidth(v) {
+    document.getElementById('readerContent').style.maxWidth = v + 'px';
+    localStorage.setItem('rd_w', v);
+}
+
+// Theme
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.style.background = btn.dataset.bg;
+    btn.style.color      = btn.dataset.fg;
+    btn.onclick = () => {
+        wrap.style.background  = btn.dataset.bg;
+        body.style.color       = btn.dataset.fg;
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        localStorage.setItem('rd_bg', btn.dataset.bg);
+        localStorage.setItem('rd_fg', btn.dataset.fg);
+    };
+});
+
+// Restore saved theme
+const savedBg = localStorage.getItem('rd_bg');
+const savedFg = localStorage.getItem('rd_fg');
+const savedW  = localStorage.getItem('rd_w');
+if (savedBg) { wrap.style.background = savedBg; body.style.color = savedFg; }
+if (savedW)  { document.getElementById('readerContent').style.maxWidth = savedW + 'px'; }
+const savedW2 = localStorage.getItem('rd_w') || 740;
+document.querySelector('input[type=range]').value = savedW2;
+applySettings();
+
+// ── Panels ────────────────────────────────────────────
+function openPanel(id) {
+    closeAll();
+    document.getElementById(id).classList.add('open');
+    document.getElementById('panelBackdrop').style.display = 'block';
+}
+function closePanel(id) {
+    document.getElementById(id).classList.remove('open');
+    document.getElementById('panelBackdrop').style.display = 'none';
+}
+function closeAll() {
+    document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('open'));
+    document.getElementById('panelBackdrop').style.display = 'none';
+}
+
+// ── Reading progress bar ──────────────────────────────
+const prog = document.createElement('div');
+prog.style.cssText = 'position:fixed;top:0;left:0;height:3px;background:#0d6efd;z-index:9999;width:0;transition:width .1s;';
+document.body.appendChild(prog);
+window.addEventListener('scroll', () => {
+    const st = window.scrollY;
+    const dh = document.documentElement.scrollHeight - window.innerHeight;
+    prog.style.width = (dh > 0 ? (st / dh) * 100 : 0) + '%';
+});
+
+// ── Chapter comments + paging ─────────────────────────
+let chCurrentPage  = 1;
+let chTotalPages   = @Model.CommentTotalPages;
+
+document.getElementById('chCommentInput')?.addEventListener('input', function () {
+    document.getElementById('chCharCount').textContent = this.value.length;
+});
+
+const __currentUserId = @Json.Serialize(
+    User.Identity?.IsAuthenticated == true
+        ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
+        : (int?)null
+);
+
+const __isAdmin = @Json.Serialize(User.IsInRole("Admin"));
+
+window.__reloadComments = () => loadChapterComments(chCurrentPage);
+
+async function loadChapterComments(page) {
+
+    if (page < 1 || page > chTotalPages) return;
+
+    const list = document.getElementById('chCommentList');
+    list.style.opacity = '0.5';
+
+    try {
+        const res  = await fetch(`${window.location.pathname}?handler=Comments&pageNumber=${page}`);
+        const data = await res.json();
+
+        chCurrentPage = data.page;
+        chTotalPages  = data.totalPages;
+
+        list.innerHTML = data.comments.length === 0
+            ? `<div class="text-center py-5" id="chNoCommentMsg">
+                   <i class="far fa-comment-dots fa-2x text-muted mb-2" style="opacity:.3;"></i>
+                   <p class="mb-0 text-muted" style="font-size:14.5px;">
+                       No comments yet. Be the first to start the conversation!
+                   </p>
+               </div>`
+            : data.comments.map(c => {
+                const dName = c.displayName ? c.displayName : 'User';
+
+                const avatarHtml = c.avatarUrl
+                    ? `<img src="${escHtml(c.avatarUrl)}" alt="${escHtml(dName)}" class="rounded-circle shadow-sm"
+                            style="width:38px;height:38px;object-fit:cover;border:1px solid rgba(13,110,253,.2);" />`
+                    : `<div class="rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold shadow-sm"
+                            style="width:38px;height:38px;font-size:14px;background:rgba(13,110,253,.1);border:1px solid rgba(13,110,253,.2);">
+                            ${escHtml((dName).charAt(0).toUpperCase())}
+                        </div>`;
+
+                const canManage = c.userId === __currentUserId || __isAdmin;
+
+                const actions = canManage
+                    ? `<button class="btn btn-link p-0 text-muted comment-edit-btn"
+                               style="font-size:12px;" title="Edit"
+                               data-id="${c.id}"
+                               data-content="${escHtml(c.content)}">
+                           <i class="fas fa-pen"></i>
+                       </button>
+                       <button class="btn btn-link p-0 text-danger comment-delete-btn"
+                               style="font-size:12px;" title="Delete"
+                               data-id="${c.id}">
+                           <i class="fas fa-trash"></i>
+                       </button>`
+                    : '';
+
+                return `
+                    <div class="d-flex gap-3 pb-3 border-bottom border-secondary border-opacity-10">
+                        <div class="flex-shrink-0">
+                            ${avatarHtml}
+                        </div>
+                        <div class="flex-grow-1" style="min-width:0;">
+                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                <span class="fw-semibold" style="font-size:14px;">${escHtml(dName)}</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    ${actions}
+                                    <span class="text-muted" style="font-size:11px;">
+                                        <i class="far fa-clock me-1"></i>
+                                        ${new Date(c.createdAt).toLocaleString('en-GB', {
+                                            day: '2-digit', month: 'short', year: 'numeric',
+                                            hour: '2-digit', minute: '2-digit'
+                                        })}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="mb-0" style="font-size:14.5px;line-height:1.6;color:inherit;opacity:.9;white-space:pre-wrap;">${escHtml(c.content)}</p>
+                        </div>
+                    </div>`;
+            }).join('');
+
+        document.getElementById('chPageLabel').textContent      = chCurrentPage;
+        document.getElementById('chTotalPagesLabel').textContent = chTotalPages;
+        document.getElementById('chPrevBtn').disabled = chCurrentPage <= 1;
+        document.getElementById('chNextBtn').disabled = chCurrentPage >= chTotalPages;
+
+        const pager = document.getElementById('chPager');
+        pager.style.display = chTotalPages > 1 ? 'flex' : 'none';
+
+        document.getElementById('chapterComments')
+            .scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch {
+        alert('Failed to load comments.');
+    } finally {
+        list.style.opacity = '1';
+    }
+}
+// Event delegation cho edit/delete buttons (server-rendered lần đầu)
+document.getElementById('chCommentList').addEventListener('click', function(e) {
+    const editBtn   = e.target.closest('.comment-edit-btn');
+    const deleteBtn = e.target.closest('.comment-delete-btn');
+
+    if (editBtn) {
+        const id      = parseInt(editBtn.dataset.id);
+        const content = editBtn.dataset.content;
+        openEditComment(id, content);
+    }
+
+    if (deleteBtn) {
+        const id = parseInt(deleteBtn.dataset.id);
+        deleteComment(id);
+    }
+});
+async function postChapterComment() {
+    const input   = document.getElementById('chCommentInput');
+    const content = input.value.trim();
+    if (!content) return;
+
+    const btn = document.querySelector('button[onclick="postChapterComment()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Posting...';
+
+    try {
+        const res  = await fetch(window.location.pathname + '?handler=Comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
+            },
+            body: `content=${encodeURIComponent(content)}`
+        });
+        const data = await res.json();
+        if (data.error) { alert(data.error); return; }
+
+        const badge = document.getElementById('chCommentBadge');
+        const newTotal = parseInt(badge.textContent) + 1;
+        badge.textContent = newTotal;
+
+        chTotalPages = Math.ceil(newTotal / 10);
+        await loadChapterComments(1);
+
+        input.value = '';
+        document.getElementById('chCharCount').textContent = '0';
+    } catch {
+        alert('Something went wrong. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Post';
+    }
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+</script>
+}
+

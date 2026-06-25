@@ -1,0 +1,255 @@
+﻿@page "/novels"
+@model NovelManangment.Pages.Novels.IndexModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = "Novel List";
+
+    string[] letters = { "ALL", "A","B","C","D","E","F","G","H","I","J","K",
+                          "L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z" };
+
+    var typeLabels = new Dictionary<NovelType, (string label, string css)>
+    {
+        [NovelType.Original]         = ("Original",  "text-bg-info"),
+        [NovelType.Raw]              = ("Raw",        "text-bg-secondary"),
+        [NovelType.MachineTranslated]= ("MT",         "text-bg-warning"),
+        [NovelType.HumanTranslated]  = ("HT",         "text-bg-primary"),
+        [NovelType.Parody]           = ("Parody",     "text-bg-dark"),
+    };
+
+    var statusLabels = new Dictionary<NovelStatus, (string label, string css)>
+    {
+        [NovelStatus.Ongoing]   = ("Ongoing",   "text-bg-success"),
+        [NovelStatus.Completed] = ("Completed", "text-bg-primary"),
+        [NovelStatus.Hiatus]    = ("Hiatus",    "text-bg-warning"),
+        [NovelStatus.Dropped]   = ("Dropped",   "text-bg-danger"),
+    };
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6"><h3 class="mb-0">Novel List</h3></div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item active">Novels</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+        <form method="get" id="filterForm">
+            <div class="row g-3">
+
+                <!-- ── LEFT: Novel grid ── -->
+                <div class="col-lg-9">
+
+                    <!-- Search + Sort bar -->
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" name="search" value="@Model.Search"
+                               class="form-control" placeholder="Search by title..." />
+                        <select name="sort" class="form-select" style="width:160px;flex-shrink:0;"
+                                onchange="document.getElementById('filterForm').submit()">
+                            <option value="az"      selected="@(Model.Sort=="az")">A → Z</option>
+                            <option value="za"      selected="@(Model.Sort=="za")">Z → A</option>
+                            <option value="newest"  selected="@(Model.Sort=="newest")">Newest</option>
+                            <option value="updated" selected="@(Model.Sort=="updated")">Recently Updated</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary px-3">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+
+                    <!-- Letter filter -->
+                    <div class="d-flex flex-wrap gap-1 mb-3">
+                        @foreach (var l in letters)
+                        {
+                            var active = (l == "ALL" && string.IsNullOrEmpty(Model.Letter)) || Model.Letter == l;
+                            <a href="javascript:void(0)"
+                               onclick="setLetter('@l')"
+                               class="btn btn-sm @(active ? "btn-success" : "btn-outline-secondary")"
+                               style="min-width:36px;">@l</a>
+                        }
+                        <input type="hidden" name="letter" id="letterInput" value="@Model.Letter" />
+                    </div>
+
+                    <!-- Result count -->
+                    <p class="text-muted small mb-2">
+                        Showing <strong>@Model.Novels.Count</strong> of <strong>@Model.TotalCount</strong> novels
+                    </p>
+
+                    <!-- Novel grid -->
+                    @if (Model.Novels.Any())
+                    {
+                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-xl-6 g-3 mb-4">
+                            @foreach (var novel in Model.Novels)
+                            {
+                                <div class="col">
+                                    <a href="/novels/@novel.Slug" class="text-decoration-none text-reset">
+                                        <div class="card h-100 border-0 shadow-sm novel-card">
+                                            <!-- Cover -->
+                                            <div style="position:relative;overflow:hidden;border-radius:6px 6px 0 0;">
+                                                @if (!string.IsNullOrEmpty(novel.CoverUrl))
+                                                {
+                                                    <img src="@novel.CoverUrl" alt="@novel.Title"
+                                                         class="card-img-top"
+                                                         style="height:160px;object-fit:cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="height:160px;background:#e9ecef;display:flex;align-items:center;justify-content:center;">
+                                                        <i class="fas fa-book fa-2x text-muted"></i>
+                                                    </div>
+                                                }
+                                                <!-- Overlay: latest chapter -->
+                                                @if (!string.IsNullOrEmpty(novel.LatestChapterTitle))
+                                                {
+                                                    <div class="novel-overlay">
+                                                        <span class="text-white small">@novel.LatestChapterTitle</span>
+                                                        <span class="badge @typeLabels[novel.Type].css mt-1">
+                                                            @typeLabels[novel.Type].label
+                                                        </span>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <!-- Card body -->
+                                            <div class="card-body p-2">
+                                                <p class="card-title mb-1 fw-semibold"
+                                                   style="font-size:13px;line-height:1.3;
+                                                          display:-webkit-box;-webkit-line-clamp:2;
+                                                          -webkit-box-orient:vertical;overflow:hidden;">
+                                                    @novel.Title
+                                                </p> <br />
+                                                <div class="badge @statusLabels[novel.Status].css" style="font-size:10px;">
+                                                    @statusLabels[novel.Status].label
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-book-open fa-3x mb-3 d-block"></i>
+                            No novels found.
+                        </div>
+                    }
+
+                    <!-- Pagination -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav>
+                            <ul class="pagination justify-content-center flex-wrap">
+                                @for (int p = 1; p <= Model.TotalPages; p++)
+                                {
+                                    <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                                        <a class="page-link"
+                                           href="?search=@Model.Search&sort=@Model.Sort&letter=@Model.Letter&page-number=@p@(string.Join("", Model.Types.Select(t => $"&types={t}")))@(string.Join("", Model.Statuses.Select(s => $"&statuses={s}")))@(string.Join("", Model.GenreSlugs.Select(g => $"&genres={g}")))">
+                                            @p
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                </div>
+
+                <!-- ── RIGHT: Filter sidebar ── -->
+                <div class="col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+
+                            <!-- Type filter -->
+                            <h6 class="fw-semibold mb-2">Type</h6>
+                            @foreach (var t in Enum.GetValues<NovelType>())
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="types" value="@((int)t)" id="type_@t"
+                                           @(Model.Types.Contains(t) ? "checked" : "") />
+                                    <label class="form-check-label small" for="type_@t">
+                                        @typeLabels[t].label
+                                    </label>
+                                </div>
+                            }
+
+                            <hr class="my-3" />
+
+                            <!-- Status filter -->
+                            <h6 class="fw-semibold mb-2">Status</h6>
+                            @foreach (var s in Enum.GetValues<NovelStatus>())
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="statuses" value="@((int)s)" id="status_@s"
+                                           @(Model.Statuses.Contains(s) ? "checked" : "") />
+                                    <label class="form-check-label small" for="status_@s">
+                                        @statusLabels[s].label
+                                    </label>
+                                </div>
+                            }
+
+                            <hr class="my-3" />
+
+                            <!-- Genre filter -->
+                            <h6 class="fw-semibold mb-2">Genre</h6>
+                            <div style="max-height:200px;overflow-y:auto;">
+                                @foreach (var g in Model.AllGenres)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="genres" value="@g.Slug" id="genre_@g.Slug"
+                                               @(Model.GenreSlugs.Contains(g.Slug) ? "checked" : "") />
+                                        <label class="form-check-label small text-break w-100" 
+                                                for="genre_@g.Slug"
+                                                data-bs-toggle="tooltip" 
+                                                data-bs-placement="left" 
+                                                title="@(string.IsNullOrEmpty(g.Description) ? "No description available" : g.Description)"
+                                                style="cursor: help; user-select: none;">
+                                            @g.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="d-grid mt-3 gap-2">
+                                <button type="submit" class="btn btn-success btn-sm">Apply</button>
+                                <a href="/Novels" class="btn btn-outline-secondary btn-sm">Reset</a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .novel-card { transition: transform .15s, box-shadow .15s; cursor: pointer; }
+    .novel-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.15) !important; }
+    .novel-overlay {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,.75));
+        padding: 20px 6px 6px;
+        display: flex; flex-direction: column;
+    }
+    .novel-overlay span { font-size: 11px; line-height: 1.2;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+
+@section Scripts {
+<script>
+    function setLetter(val) {
+        document.getElementById('letterInput').value = val === 'ALL' ? '' : val;
+        document.getElementById('filterForm').submit();
+    }
+</script>
+}

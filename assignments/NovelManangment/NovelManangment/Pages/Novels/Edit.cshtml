@@ -1,0 +1,298 @@
+﻿@page "/novels/edit/{novelId:int}"
+@model NovelManangment.Pages.Novels.EditModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = $"Edit — {Model.Novel.Title}";
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="fas fa-pen text-warning me-2"></i>Edit Novel
+                </h3>
+                <small class="text-muted">
+                    Last updated:
+                    @(Model.Novel.LastUpdatedAt.HasValue
+                        ? Model.Novel.LastUpdatedAt.Value.ToString("dd MMM yyyy HH:mm")
+                        : "Never")
+                </small>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/novels/@Model.Novel.Slug" target="_blank"
+                       class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-eye me-1"></i> View Public
+                </a>
+                <a href="/novels/@Model.Novel.Id/manage"
+                       class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-layer-group me-1"></i> Manage Content
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+
+        <!-- Success alert (TempData) -->
+        @if (TempData["Success"] is string msg)
+        {
+            <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-check-circle"></i>
+                <span>@msg</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form method="post">
+            <input type="hidden" asp-for="Input.NovelId" />
+
+            <div class="row g-4">
+
+                <!-- ── LEFT: Cover ── -->
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm sticky-top" style="top:72px;">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-image me-1 text-muted"></i> Cover
+                            </h6>
+                        </div>
+                        <div class="card-body text-center p-3">
+                            <img id="coverPreview"
+                                 src="@(string.IsNullOrEmpty(Model.Input.CoverUrl)
+                                                                                                     ? "https://placehold.co/300x420?text=No+Cover"
+                                                                                                     : Model.Input.CoverUrl)"
+                                 alt="Cover preview"
+                                 class="img-fluid rounded shadow-sm"
+                                 style="max-height:300px;object-fit:cover;width:100%;"
+                                 onerror="this.src='https://placehold.co/300x420?text=Invalid+URL'" />
+                        </div>
+                        <div class="card-footer bg-white p-2">
+                            <label class="form-label small fw-semibold mb-1">Cover URL</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input asp-for="Input.CoverUrl"
+                                       class="form-control"
+                                       placeholder="https://...cover.jpg"
+                                       oninput="updateCoverPreview(this.value)" />
+                            </div>
+                            <span asp-validation-for="Input.CoverUrl" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── RIGHT: Form ── -->
+                <div class="col-md-9">
+
+                    <!-- Basic Info -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-info-circle me-1 text-primary"></i> Basic Information
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label asp-for="Input.Title" class="form-label fw-semibold">
+                                        Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Input.Title" class="form-control"
+                                           placeholder="Novel title..." />
+                                    <span asp-validation-for="Input.Title" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.Type" class="form-label fw-semibold">Type</label>
+                                    <select asp-for="Input.Type" class="form-select">
+                                        <option value="0">📝 Original</option>
+                                        <option value="1">📄 Raw</option>
+                                        <option value="2">🤖 Machine Translated</option>
+                                        <option value="3">👤 Human Translated</option>
+                                        <option value="4">🎭 Parody</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label asp-for="Input.AlternativeTitle" class="form-label fw-semibold">
+                                        Alternative Title
+                                        <span class="text-muted fw-normal">(optional)</span>
+                                    </label>
+                                    <input asp-for="Input.AlternativeTitle" class="form-control"
+                                           placeholder="Other names, original title..." />
+                                    <span asp-validation-for="Input.AlternativeTitle" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="Input.Language" class="form-label fw-semibold">
+                                        Language <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Input.Language" class="form-control"
+                                           placeholder="Enter novel language..." />
+                                    <span asp-validation-for="Input.Language" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Author & Status -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-users me-1 text-info"></i> Author & Status
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label asp-for="Input.AuthorName" class="form-label fw-semibold">
+                                        Author <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-pen-nib"></i></span>
+                                        <input asp-for="Input.AuthorName" class="form-control"
+                                               placeholder="Author name..." />
+                                    </div>
+                                    <span asp-validation-for="Input.AuthorName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.ArtistName" class="form-label fw-semibold">
+                                        Artist
+                                        <span class="text-muted fw-normal">(optional)</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-paint-brush"></i></span>
+                                        <input asp-for="Input.ArtistName" class="form-control"
+                                               placeholder="Artist name..." />
+                                    </div>
+                                    <span asp-validation-for="Input.ArtistName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.Status" class="form-label fw-semibold">Status</label>
+                                    <select asp-for="Input.Status" class="form-select">
+                                        <option value="0">🟢 Ongoing</option>
+                                        <option value="1">✅ Completed</option>
+                                        <option value="2">⏸️ Hiatus</option>
+                                        <option value="3">❌ Dropped</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Genres -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-tags me-1 text-success"></i> Genres
+                            </h6>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="row g-2 mb-3">
+                                @foreach (var genre in Model.AllGenres)
+                                {
+                                    <div class="col-6 col-md-4 col-lg-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input genre-checkbox"
+                                                    type="checkbox"
+                                                    name="Input.GenreIds"
+                                                    value="@genre.Id"
+                                                    id="genre_@genre.Id"
+                                            @(Model.Input.GenreIds.Contains(genre.Id) ? "checked" : "") />
+                                            <label class="form-check-label small" for="genre_@genre.Id">
+                                                @genre.Name
+                                            </label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <!-- Selected tags preview -->
+                            <div id="selectedGenres" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-align-left me-1 text-warning"></i> Description
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <textarea asp-for="Input.Description" class="form-control" rows="7"
+                                      placeholder="Synopsis..."
+                                      oninput="updateCharCount(this)"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                                <small class="text-muted" id="charCount">0 characters</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="/my-novels" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="/novels/@Model.Novel.Slug" target="_blank"
+                                   class="btn btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> Preview
+                            </a>
+                            <button type="submit" class="btn btn-warning px-4">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updateCoverPreview(url) {
+            const img = document.getElementById('coverPreview');
+            img.src = url?.trim()
+                ? url
+                : 'https://placehold.co/300x420?text=No+Cover';
+        }
+
+        function updateCharCount(el) {
+            document.getElementById('charCount').textContent = el.value.length + ' characters';
+        }
+
+        // Genre tag preview
+        function updateGenreTags() {
+            const container = document.getElementById('selectedGenres');
+            if (!container) return;
+            container.innerHTML = '';
+            document.querySelectorAll('.genre-checkbox:checked').forEach(cb => {
+                const label = document.querySelector(`label[for="${cb.id}"]`).textContent.trim();
+                const tag   = document.createElement('span');
+                tag.className   = 'badge text-bg-success';
+                tag.style.cursor = 'pointer';
+                tag.title       = 'Click to deselect';
+                tag.textContent = '× ' + label;
+                tag.onclick = () => { cb.checked = false; updateGenreTags(); };
+                container.appendChild(tag);
+            });
+        }
+
+        document.querySelectorAll('.genre-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateGenreTags);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Init char count
+            const desc = document.getElementById('Input_Description');
+            if (desc?.value) updateCharCount(desc);
+
+            // Init genre tags
+            updateGenreTags();
+        });
+    </script>
+}

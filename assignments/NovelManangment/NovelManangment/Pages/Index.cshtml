@@ -1,0 +1,220 @@
+﻿@page
+@model IndexModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+
+        <div class="col-12 mb-3">
+            <img src="https://www.clipstudio.net/wp-content/uploads/2019/08/0033_005.jpg"
+                 alt="Banner"
+                 class="img-fluid d-block mx-auto"
+                 style="width:95%;
+            height:320px;
+            border-radius:8px;">
+        </div>
+
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+
+        <!-- Content Area -->
+        <div class="row mt-4">
+            <div class="col-12">
+
+                <!-- Collapsible announcement banner -->
+@*                 <div id="ann-banner"
+                     style="border: 0.5px solid #F7C1C1; background: #FCEBEB; border-radius: 8px;
+                    padding: 10px 14px; margin-bottom: 1rem;
+                    display: flex; align-items: flex-start; gap: 10px; cursor: pointer;"
+                     onclick="toggleAnn()">
+                    <i class="fas fa-bullhorn" style="color: #A32D2D; margin-top: 2px; flex-shrink: 0;"></i>
+                    <div style="flex: 1;">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span style="font-size: 13px; font-weight: 500; color: #791F1F;">
+                                Admin Announcements · 1 new
+                            </span>
+                            <i id="ann-chevron" class="fas fa-chevron-down"
+                               style="font-size: 12px; color: #A32D2D; transition: transform 0.2s;"></i>
+                        </div>
+                        <div id="ann-body"
+                             style="margin-top: 8px; font-size: 13px; color: #791F1F;
+                            border-top: 0.5px solid #F7C1C1; padding-top: 8px;">
+                            <strong style="color: #501313;">Policy update</strong> —
+                            Please do not use 18+ images as novel covers.
+                            Violations will result in the novel being locked.
+                        </div>
+                    </div>
+                </div> *@
+                @if (Model.ActiveAlerts.Any())
+                {
+                    @foreach (var alert in Model.ActiveAlerts)
+                    {
+                        var (borderColor, bgColor, iconColor, textColor) = alert.Type switch
+                        {
+                            AlertType.Warning => ("#FFE082", "#FFFDE7", "#F57F17", "#5D4037"),
+                            AlertType.Danger => ("#F7C1C1", "#FCEBEB", "#A32D2D", "#791F1F"),
+                            AlertType.Success => ("#A5D6A7", "#F1F8E9", "#2E7D32", "#1B5E20"),
+                            _ => ("#90CAF9", "#E3F2FD", "#1565C0", "#0D47A1")
+                        };
+                        var alertId = $"ann-{alert.Id}";
+                        <div id="@alertId"
+                             style="border:0.5px solid @borderColor;background:@bgColor;border-radius:8px;
+                            padding:10px 14px;margin-bottom:1rem;
+                            display:flex;align-items:flex-start;gap:10px;cursor:pointer;"
+                             onclick="toggleAnn('@alertId')">
+                            <i class="fas fa-bullhorn" style="color:@iconColor;margin-top:2px;flex-shrink:0;"></i>
+                            <div style="flex:1;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span style="font-size:13px;font-weight:500;color:@textColor;">
+                                        @alert.Title
+                                    </span>
+                                    <i id="chev-@alertId" class="fas fa-chevron-down"
+                                       style="font-size:12px;color:@iconColor;transition:transform 0.2s;"></i>
+                                </div>
+                                <div id="body-@alertId"
+                                     style="margin-top:8px;font-size:13px;color:@textColor;
+                                    border-top:0.5px solid @borderColor;padding-top:8px;">
+                                    @alert.Content
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <!-- Recently Updated Novels table (now full width) -->
+                <div class="card card-outline card-primary mb-4">
+                    <div class="card-header border-0">
+                        <h3 class="card-title">Recently Updated Novels</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-lte-toggle="card-collapse">
+                                <i data-lte-icon="expand" class="fas fa-plus" style="display: none;"></i>
+                                <i data-lte-icon="collapse" class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-striped align-middle m-0">
+                            <thead>
+                                <tr>
+                                    <th>Cover</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Chapters</th>
+                                    <th>Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.RecentNovels.Any())
+                                {
+                                    @foreach (var item in Model.RecentNovels)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.CoverUrl))
+                                                {
+                                                    <img src="@item.CoverUrl" alt="@item.Title"
+                                                         style="width: 52px; height: 65px; object-fit: cover; border-radius: 3px;" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="width: 32px; height: 45px; background: #e9ecef; border-radius: 3px;
+                                                        display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fas fa-book text-muted" style="font-size: 13px;"></i>
+                                                    </div>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-page="/Novels/Detail"
+                                                   asp-route-slug="@item.Slug" 
+                                                   class="text-decoration-none fw-bold">@item.Title</a>
+                                            </td>
+                                            <td>@item.AuthorName</td>
+                                            <td>
+                                                @switch (item.Type)
+                                                {
+                                                    case NovelType.Original:
+                                                        <span class="badge text-bg-info">Original</span>
+                                                        break;
+                                                    case NovelType.Raw:
+                                                        <span class="badge text-bg-secondary">Raw</span>
+                                                        break;
+                                                    case NovelType.MachineTranslated:
+                                                        <span class="badge text-bg-warning">Machine Translated</span>
+                                                        break;
+                                                    case NovelType.HumanTranslated:
+                                                        <span class="badge text-bg-primary">Human Translated</span>
+                                                        break;
+                                                    case NovelType.Parody:
+                                                        <span class="badge text-bg-dark">Parody</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (item.Status)
+                                                {
+                                                    case NovelStatus.Ongoing:
+                                                        <span class="badge text-bg-primary">Ongoing</span>
+                                                        break;
+                                                    case NovelStatus.Completed:
+                                                        <span class="badge text-bg-success">Completed</span>
+                                                        break;
+                                                    case NovelStatus.Hiatus:
+                                                        <span class="badge text-bg-warning">Hiatus</span>
+                                                        break;
+                                                    case NovelStatus.Dropped:
+                                                        <span class="badge text-bg-danger">Dropped</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@item.TotalChapters</td>
+                                            <td>@Model.GetTimeAgo(item.LastUpdated)</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-3">No novels found.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer clearfix">
+                        <a href="/novels" class="btn btn-sm btn-secondary float-end">View All</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let annOpen = true;
+        function toggleAnn() {
+            annOpen = !annOpen;
+            document.getElementById('ann-body').style.display = annOpen ? 'block' : 'none';
+            document.getElementById('ann-chevron').style.transform = annOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+        }
+
+        const annState = {};
+        function toggleAnn(id) {
+            annState[id] = !annState[id];
+            const body = document.getElementById('body-' + id);
+            const chev = document.getElementById('chev-' + id);
+            if (body) body.style.display = annState[id] ? 'none' : 'block';
+            if (chev) chev.style.transform = annState[id] ? 'rotate(-90deg)' : 'rotate(0deg)';
+        }
+    </script>
+}

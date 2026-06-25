@@ -12,10 +12,10 @@ namespace ContosoUniversity.Pages
     [AllowAnonymous] // Cho phép truy cập không cần đăng nhập
     public class LoginModel : PageModel
     {
-        private readonly SchoolContext _context;
+        private readonly ISchoolContext _context;
         private readonly IConfiguration _configuration;
 
-        public LoginModel(SchoolContext context, IConfiguration configuration)
+        public LoginModel(ISchoolContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;

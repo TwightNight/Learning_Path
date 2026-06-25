@@ -1,0 +1,393 @@
+﻿@page "/moderator"
+@model NovelManangment.Pages.Moderator.DashboardModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = "Moderator Dashboard";
+
+    var typeMeta = new Dictionary<NovelType, (string label, string css)>
+    {
+        [NovelType.Original]          = ("Original", "text-bg-info"),
+        [NovelType.Raw]               = ("Raw",      "text-bg-secondary"),
+        [NovelType.MachineTranslated] = ("MT",       "text-bg-warning"),
+        [NovelType.HumanTranslated]   = ("HT",       "text-bg-primary"),
+        [NovelType.Parody]            = ("Parody",   "text-bg-dark"),
+    };
+
+    // ← tách riêng, không trộn lẫn NovelStatus với PublishStatus
+    var publishMeta = new Dictionary<PublishStatus, (string label, string css, string icon)>
+    {
+        [PublishStatus.Draft]    = ("Draft",    "text-bg-secondary", "fa-file"),
+        [PublishStatus.Pending]  = ("Pending",  "text-bg-warning",   "fa-clock"),
+        [PublishStatus.Approved] = ("Approved", "text-bg-success",   "fa-check-circle"),
+        [PublishStatus.Rejected] = ("Rejected", "text-bg-danger",    "fa-times-circle"),
+    };
+
+    var actionMeta = new Dictionary<ReviewAction, (string label, string css, string icon)>
+    {
+        [ReviewAction.Approved]        = ("Approved",           "text-bg-success", "fa-check-circle"),
+        [ReviewAction.Rejected]        = ("Rejected",           "text-bg-danger",  "fa-times-circle"),
+        [ReviewAction.RequestRevision] = ("Revision Requested", "text-bg-warning", "fa-edit"),
+    };
+}
+
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h3 class="mb-0">
+          <i class="fas fa-gavel text-warning me-2"></i>Moderator Dashboard
+        </h3>
+        <small class="text-muted">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+
+    <!-- Flash messages -->
+    @if (TempData["Success"] is string ok)
+    {
+      <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-3">
+        <i class="fas fa-check-circle"></i><span>@ok</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+      </div>
+    }
+    @if (TempData["Error"] is string err)
+    {
+      <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-3">
+        <i class="fas fa-exclamation-circle"></i><span>@err</span>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+      </div>
+    }
+
+    <!-- ── Stats ── -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-3 fw-bold text-warning">@Model.PendingCount</div>
+          <div class="text-muted small">Pending Review</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-3 fw-bold text-success">@Model.ApprovedToday</div>
+          <div class="text-muted small">Approved Today</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-3 fw-bold text-danger">@Model.RejectedToday</div>
+          <div class="text-muted small">Rejected Today</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+          <div class="fs-3 fw-bold text-primary">@Model.TotalReviewed</div>
+          <div class="text-muted small">Total Reviewed</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ── LEFT: Pending queue ── -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom d-flex align-items-center
+                      justify-content-between py-2">
+            <h6 class="mb-0 fw-semibold">
+              <i class="fas fa-clock text-warning me-1"></i>
+              Pending Approval
+              <span class="badge text-bg-warning ms-1">@Model.PendingCount</span>
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            @if (!Model.PendingNovels.Any())
+            {
+              <div class="text-center text-muted py-5">
+                <i class="fas fa-check-circle fa-3x d-block mb-2 text-success opacity-50"></i>
+                All caught up! No novels pending review.
+              </div>
+            }
+            @foreach (var novel in Model.PendingNovels)
+            {
+              <div class="d-flex gap-3 p-3 border-bottom novel-review-row">
+
+                <!-- Cover -->
+                <div class="flex-shrink-0">
+                  @if (!string.IsNullOrEmpty(novel.CoverUrl))
+                  {
+                    <img src="@novel.CoverUrl"
+                         style="width:56px;height:78px;object-fit:cover;
+                                border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15);" />
+                  }
+                  else
+                  {
+                    <div style="width:56px;height:78px;background:#e9ecef;border-radius:6px;
+                                display:flex;align-items:center;justify-content:center;">
+                      <i class="fas fa-book text-muted"></i>
+                    </div>
+                  }
+                </div>
+
+                <!-- Info -->
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap">
+                    <div>
+                      <h6 class="mb-1 fw-semibold">
+                        <a href="/novels/@novel.Slug" target="_blank"
+                           class="text-decoration-none text-reset">
+                          @novel.Title
+                        </a>
+                      </h6>
+                      <div class="d-flex flex-wrap gap-1 mb-1">
+                        <span class="badge @typeMeta[novel.Type].css"
+                              style="font-size:10px;">@typeMeta[novel.Type].label</span>
+                        <span class="badge @publishMeta[novel.PublishStatus].css"
+                              style="font-size:10px;">
+                          <i class="fas @publishMeta[novel.PublishStatus].icon me-1"></i>
+                          @publishMeta[novel.PublishStatus].label
+                        </span>
+                        @foreach (var g in novel.Genres.Take(3))
+                        {
+                          <span class="badge text-bg-light border text-muted"
+                                style="font-size:10px;">@g</span>
+                        }
+                      </div>
+                      <div style="font-size:12px;color:#888;">
+                        <i class="fas fa-user me-1"></i>@novel.PublisherName
+                        <span class="mx-1">·</span>
+                        <i class="fas fa-list-ol me-1"></i>@novel.TotalChapters chapters
+                        <span class="mx-1">·</span>
+                        <i class="fas fa-clock me-1"></i>@Model.GetTimeAgo(novel.CreatedAt)
+                      </div>
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex gap-1 flex-shrink-0 flex-wrap">
+                      <button class="btn btn-sm btn-success"
+                              onclick="approveNovel(@novel.Id, '@Html.Raw(novel.Title.Replace("'","\\'"))')">
+                        <i class="fas fa-check me-1"></i> Approve
+                      </button>
+                      <button class="btn btn-sm btn-outline-warning"
+                              onclick="openRevision(@novel.Id, '@Html.Raw(novel.Title.Replace("'","\\'"))')">
+                        <i class="fas fa-edit me-1"></i> Revise
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger"
+                              onclick="openReject(@novel.Id, '@Html.Raw(novel.Title.Replace("'","\\'"))')">
+                        <i class="fas fa-times me-1"></i> Reject
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Previous review note -->
+                  @if (!string.IsNullOrEmpty(novel.LastReviewNote))
+                  {
+                    <div class="mt-2 p-2 rounded d-flex align-items-start gap-2"
+                         style="background:#fff8e1;font-size:12px;">
+                      <i class="fas fa-history text-muted mt-1 flex-shrink-0"></i>
+                      <div>
+                        <span class="text-muted fw-medium">Previous note: </span>
+                        @novel.LastReviewNote
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: Recent activity ── -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-bottom py-2">
+            <h6 class="mb-0 fw-semibold">
+              <i class="fas fa-history text-muted me-1"></i> My Recent Reviews
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            @if (!Model.RecentlyReviewed.Any())
+            {
+              <div class="text-center text-muted py-4 small">No reviews yet.</div>
+            }
+            @foreach (var (item, idx) in Model.RecentlyReviewed.Select((r, i) => (r, i)))
+            {
+              <div class="d-flex align-items-start gap-2 px-3 py-2
+                          @(idx < Model.RecentlyReviewed.Count - 1 ? "border-bottom" : "")">
+                @if (item.ReviewAction.HasValue)
+                {
+                  <span class="badge @actionMeta[item.ReviewAction.Value].css mt-1"
+                        style="font-size:9px;flex-shrink:0;white-space:nowrap;">
+                    <i class="fas @actionMeta[item.ReviewAction.Value].icon me-1"></i>
+                    @actionMeta[item.ReviewAction.Value].label
+                  </span>
+                }
+                <div class="min-w-0 flex-grow-1">
+                  <div class="fw-medium text-truncate" style="font-size:12px;">
+                    <a href="/novels/@item.Slug" target="_blank"
+                       class="text-decoration-none text-reset">
+                      @item.Title
+                    </a>
+                  </div>
+                  @if (!string.IsNullOrEmpty(item.LastReviewNote))
+                  {
+                    <div class="text-muted text-truncate" style="font-size:11px;"
+                         title="@item.LastReviewNote">
+                      @item.LastReviewNote
+                    </div>
+                  }
+                  <div class="text-muted" style="font-size:10px;">
+                    @Model.GetTimeAgo(item.CreatedAt)
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Approve ══ -->
+<div class="modal fade" id="modalApprove" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <form method="post" asp-page-handler="Approve">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="novelId" id="apr_novelId" />
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title text-success">
+            <i class="fas fa-check-circle me-2"></i>Approve Novel
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="small mb-1">Approve and publish:</p>
+          <p class="fw-semibold" id="apr_title"></p>
+          <p class="text-muted small mb-0">
+            <i class="fas fa-info-circle me-1"></i>
+            Novel will be visible to all readers immediately.
+          </p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success">
+            <i class="fas fa-check me-1"></i> Approve
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Request Revision ══ -->
+<div class="modal fade" id="modalRevision" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" asp-page-handler="RequestRevision">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="novelId" id="rev_novelId" />
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title text-warning">
+            <i class="fas fa-edit me-2"></i>Request Revision
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="small mb-1">Requesting revision for:</p>
+          <p class="fw-semibold mb-3" id="rev_title"></p>
+          <label class="form-label fw-semibold">
+            Revision Notes <span class="text-danger">*</span>
+          </label>
+          <textarea name="note" class="form-control" rows="4"
+                    placeholder="Describe what needs to be fixed or improved..."
+                    required></textarea>
+          <div class="text-muted small mt-1">
+            <i class="fas fa-info-circle me-1"></i>
+            Publisher will see this message and can resubmit after making changes.
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-warning">
+            <i class="fas fa-edit me-1"></i> Send Revision Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Reject ══ -->
+<div class="modal fade" id="modalReject" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" asp-page-handler="Reject">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="novelId" id="rej_novelId" />
+        <div class="modal-header border-0 pb-0">
+          <h6 class="modal-title text-danger">
+            <i class="fas fa-times-circle me-2"></i>Reject Novel
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="small mb-1">Rejecting:</p>
+          <p class="fw-semibold mb-3" id="rej_title"></p>
+          <label class="form-label fw-semibold">
+            Reason <span class="text-danger">*</span>
+          </label>
+          <textarea name="note" class="form-control" rows="4"
+                    placeholder="Explain why this novel is being rejected..."
+                    required></textarea>
+          <div class="alert alert-danger py-2 mt-2 mb-0" style="font-size:12px;">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            Novel will be hidden from readers. Publisher will be notified.
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-outline-secondary"
+                  data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger">
+            <i class="fas fa-times me-1"></i> Reject
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.novel-review-row { transition: background .12s; }
+.novel-review-row:hover { background: rgba(0,0,0,.02); }
+</style>
+
+@section Scripts {
+<script>
+function approveNovel(id, title) {
+    document.getElementById('apr_novelId').value     = id;
+    document.getElementById('apr_title').textContent = title;
+    new bootstrap.Modal(document.getElementById('modalApprove')).show();
+}
+function openRevision(id, title) {
+    document.getElementById('rev_novelId').value     = id;
+    document.getElementById('rev_title').textContent = title;
+    document.querySelector('#modalRevision textarea[name="note"]').value = '';
+    new bootstrap.Modal(document.getElementById('modalRevision')).show();
+}
+function openReject(id, title) {
+    document.getElementById('rej_novelId').value     = id;
+    document.getElementById('rej_title').textContent = title;
+    document.querySelector('#modalReject textarea[name="note"]').value = '';
+    new bootstrap.Modal(document.getElementById('modalReject')).show();
+}
+</script>
+}

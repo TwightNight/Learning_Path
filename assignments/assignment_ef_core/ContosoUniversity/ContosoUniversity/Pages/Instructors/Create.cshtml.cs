@@ -11,10 +11,10 @@ namespace ContosoUniversity.Pages.Instructors
 {
     public class CreateModel : InstructorCoursesPageModel
     {
-        private readonly ContosoUniversity.Data.SchoolContext _context;
+        private readonly ContosoUniversity.Data.ISchoolContext _context;
         private readonly ILogger<InstructorCoursesPageModel> _logger;
 
-        public CreateModel(SchoolContext context,
+        public CreateModel(ISchoolContext context,
                           ILogger<InstructorCoursesPageModel> logger)
         {
             _context = context;

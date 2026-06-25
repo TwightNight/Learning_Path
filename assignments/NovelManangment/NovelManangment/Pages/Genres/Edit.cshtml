@@ -1,0 +1,125 @@
+﻿@page "/genres/{genreId:int}/edit"
+@model NovelManangment.Pages.Genres.EditModel
+@{
+    ViewData["Title"] = $"Edit Genre — {Model.Genre.Name}";
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h3 class="mb-0">
+                    <i class="fas fa-tag text-warning me-2"></i>Edit Genre
+                </h3>
+                <small class="text-muted">Slug: <code>@Model.Genre.Slug</code></small>
+            </div>
+            <a href="/genres" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-7">
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom py-2">
+                        <h6 class="mb-0 fw-semibold">
+                            <i class="fas fa-pen me-1 text-warning"></i> Genre Details
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            <div class="mb-3">
+                                <label asp-for="Input.Name" class="form-label fw-semibold">
+                                    Name <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Input.Name" class="form-control"
+                                       oninput="previewSlug(this.value)" />
+                                <span asp-validation-for="Input.Name" class="text-danger small"></span>
+                                <div class="mt-1" style="font-size:11px;color:#aaa;">
+                                    New slug: <code id="slugPreview">@Model.Genre.Slug</code>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label asp-for="Input.Description" class="form-label fw-semibold">
+                                    Description
+                                    <span class="text-muted fw-normal">(optional)</span>
+                                </label>
+                                <textarea asp-for="Input.Description" class="form-control" rows="4"
+                                          placeholder="Brief description of this genre..."></textarea>
+                                <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <a href="/genres" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-warning px-4">
+                                    <i class="fas fa-save me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Related novels preview -->
+                @if (Model.RelatedNovels.Any())
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white border-bottom py-2">
+                            <h6 class="mb-0 fw-semibold">
+                                <i class="fas fa-book me-1 text-muted"></i>
+                                Novels using this genre
+                                <span class="badge text-bg-secondary ms-1">@Model.RelatedNovels.Count</span>
+                            </h6>
+                        </div>
+                        <div class="card-body p-0">
+                            @foreach (var (novel, idx) in Model.RelatedNovels.Select((n, i) => (n, i)))
+                            {
+                                <div class="d-flex align-items-center gap-2 px-3 py-2
+                                    @(idx < Model.RelatedNovels.Count - 1 ? "border-bottom" : "")">
+                                    @if (!string.IsNullOrEmpty(novel.CoverUrl))
+                                    {
+                                        <img src="@novel.CoverUrl" style="width:28px;height:40px;
+                                        object-fit:cover;border-radius:3px;flex-shrink:0;" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:28px;height:40px;background:#e9ecef;border-radius:3px;
+                                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="fas fa-book text-muted" style="font-size:10px;"></i>
+                                        </div>
+                                    }
+                                    <div class="flex-grow-1 min-w-0">
+                                        <a href="/novels/@novel.Slug" target="_blank"
+                                               class="text-decoration-none fw-medium text-reset"
+                                               style="font-size:13px;">
+                                            @novel.Title
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewSlug(val) {
+            const slug = val.toLowerCase().trim()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/^-+|-+$/g, '');
+            document.getElementById('slugPreview').textContent = slug || '—';
+        }
+    </script>
+}

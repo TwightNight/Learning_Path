@@ -1,0 +1,799 @@
+﻿@page "/novels/{slug}"
+@model NovelManangment.Pages.Novels.DetailModel
+@using NovelManangment.Models
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = Model.Novel.Title;
+    var novel = Model.Novel;
+
+    var typeBadge = novel.Type switch
+    {
+        NovelType.Original => ("Original", "text-bg-info"),
+        NovelType.Raw => ("Raw", "text-bg-secondary"),
+        NovelType.MachineTranslated => ("Machine Translated", "text-bg-warning"),
+        NovelType.HumanTranslated => ("Human Translated", "text-bg-primary"),
+        NovelType.Parody => ("Parody", "text-bg-dark"),
+        _ => ("Unknown", "text-bg-secondary")
+    };
+
+    var statusBadge = novel.Status switch
+    {
+        NovelStatus.Ongoing => ("Ongoing", "text-bg-success"),
+        NovelStatus.Completed => ("Completed", "text-bg-primary"),
+        NovelStatus.Hiatus => ("Hiatus", "text-bg-warning"),
+        NovelStatus.Dropped => ("Dropped", "text-bg-danger"),
+        _ => ("Unknown", "text-bg-secondary")
+    };
+
+    long totalWords = Model.Volumes.SelectMany(v => v.Chapters).Sum(c => 0); // placeholder
+}
+
+<div class="app-content">
+    <div class="container-fluid">
+
+        <!-- ── Hero info card ── -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="row g-4">
+
+                    <!-- Cover -->
+                    <div class="col-auto">
+                        @if (!string.IsNullOrEmpty(novel.CoverUrl))
+                        {
+                            <img src="@novel.CoverUrl" alt="@novel.Title"
+                                 style="width:160px;height:224px;object-fit:cover;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.2);" />
+                        }
+                        else
+                        {
+                            <div style="width:160px;height:224px;background:#e9ecef;border-radius:8px;
+                                display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-book fa-3x text-muted"></i>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="col">
+                        <!-- Type badge + Title -->
+                        <div class="mb-2">
+                            <span class="badge @typeBadge.Item2 me-2">@typeBadge.Item1</span>
+                        </div>
+                        <h2 class="fw-bold mb-2" style="font-size:1.6rem;line-height:1.25;">@novel.Title</h2>
+
+                        <!-- Genres -->
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            @foreach (var g in novel.Genres)
+                            {
+                                <a href="/Novels?GenreIds=@g.Id"
+                                   class="badge text-bg-light border text-decoration-none"
+                                   style="font-size:12px;font-weight:500;color:#333!important;">@g.Name</a>
+                            }
+                        </div>
+
+                        <!-- Author / Artist / Status -->
+                        <div class="row g-1" style="font-size:14px;">
+                            <div class="col-12">
+                                <span class="text-muted">Author:</span>
+                                <strong class="ms-1">@novel.AuthorName</strong>
+                            </div>
+                            @if (!string.IsNullOrEmpty(novel.ArtistName))
+                            {
+                                <div class="col-12">
+                                    <span class="text-muted">Artist:</span>
+                                    <strong class="ms-1">@novel.ArtistName</strong>
+                                </div>
+                            }
+                            <div class="col-12">
+                                <span class="text-muted">Status:</span>
+                                <span class="badge @statusBadge.Item2 ms-1">@statusBadge.Item1</span>
+                            </div>
+
+                            <div class="col-12">
+                                <span class="text-muted">Language:</span>
+                                <strong class="ms-1">@novel.Language</strong>
+                            </div>
+                            @if (!string.IsNullOrEmpty(novel.AlternativeTitle))
+                            {
+                                <div class="col-12 mt-1">
+                                    <span class="text-muted">Alt. title:</span>
+                                    <span class="ms-1 fst-italic text-secondary">@novel.AlternativeTitle</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Action icons -->
+                        <div class="d-flex gap-4 mt-3 pt-3 border-top">
+                            <!-- Follow button -->
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button id="followBtn"
+                                        class="btn btn-link text-decoration-none p-0 text-center action-btn"
+                                        onclick="toggleFollow()">
+                                    <i id="followIcon"
+                                       class="fas fa-heart d-block mb-1"
+                                       style="font-size:1.3rem;color:@(Model.IsFollowing ? "#dc3545" : "#dee2e6");
+                                    transition:color .2s;"></i>
+                                    <span id="followCount" class="text-muted" style="font-size:11px;">
+                                        @Model.FollowCount
+                                    </span>
+                                </button>
+                            }
+                            else
+                            {
+                                <a href="/login" class="btn btn-link text-decoration-none p-0 text-center action-btn">
+                                    <i class="fas fa-heart d-block mb-1 text-muted"
+                                       style="font-size:1.3rem;"></i>
+                                    <span class="text-muted" style="font-size:11px;">@Model.FollowCount</span>
+                                </a>
+                            }
+                            <!-- Rating -->
+                            <div class="text-center">
+                                <div id="starsDisplay" class="d-flex gap-1 justify-content-center mb-1">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fas fa-star star-btn"
+                                               data-score="@i"
+                                               style="font-size:1.2rem;cursor:pointer;color:#dee2e6;transition:color .15s;">
+                                        </i>
+                                    }
+                                </div>
+                                <span class="text-muted" style="font-size:11px;">
+                                    <span id="avgRating">@Model.AverageRating.ToString("F1")</span>
+                                    / 5
+                                    (<span id="ratingCount">@Model.RatingCount</span>)
+                                </span>
+                                <div style="font-size:10px;color:#aaa;" id="userRatingInfo">
+                                    @if (Model.UserRating.HasValue)
+                                    {
+                                        <span>Your rating: <span id="userRatingLabel">@Model.UserRating</span>★</span>
+                                    }
+                                    else if (User.Identity?.IsAuthenticated != true)
+                                    {
+                                        <span>Login to rate</span>
+                                    }
+                                </div>
+                            </div>
+                            <!-- Contents -->
+                            <a href="#toc" class="btn btn-link text-decoration-none p-0 text-center action-btn">
+                                <i class="fas fa-list-ul text-primary d-block mb-1" style="font-size:1.3rem;"></i>
+                                <span class="text-muted" style="font-size:11px;">Contents</span>
+                            </a>
+                            <!-- Comments -->
+                            <a href="#cmt" class="btn btn-link text-decoration-none p-0 text-center action-btn">
+                                <i class="fas fa-comment text-info d-block mb-1" style="font-size:1.3rem;"></i>
+                                <span class="text-muted" style="font-size:11px;">Comments</span>
+                            </a>
+                            <!-- Share -->
+                            <a class="btn btn-link text-decoration-none p-0 text-center action-btn"
+                                    onclick="shareNovel()">
+                                <i class="fas fa-share-alt text-success d-block mb-1" style="font-size:1.3rem;"></i>
+                                <span class="text-muted" style="font-size:11px;">Share</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div class="row text-center border-top mt-4 pt-3 g-0">
+                    <div class="col border-end">
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Last updated</div>
+                        <div class="fw-semibold">@Model.GetTimeAgo(novel.LastUpdatedAt ?? novel.CreatedAt)</div>
+                    </div>
+                    <div class="col border-end">
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Volumes</div>
+                        <div class="fw-semibold">@Model.Volumes.Count</div>
+                    </div>
+                    <div class="col border-end">
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Chapters</div>
+                        <div class="fw-semibold">@Model.Volumes.Sum(v => v.Chapters.Count)</div>
+                    </div>
+                    <div class="col">
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Added</div>
+                        <div class="fw-semibold">@novel.CreatedAt.ToString("MMM yyyy")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Description ── -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold mb-3">Synopsis</h5>
+                <div id="synopsisText" style="font-size:14px;line-height:1.8;
+                    overflow:hidden;max-height:120px;transition:max-height .4s ease;">
+                    @novel.Description
+                </div>
+                <a href="javascript:void(0)" id="synopsisToggle"
+                       onclick="toggleSynopsis()" class="text-primary small mt-2 d-inline-block">
+                    Show more
+                </a>
+            </div>
+        </div>
+
+        <!-- ── Table of contents ── -->
+        <div id="toc">
+            @foreach (var vol in Model.Volumes)
+            {
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-header bg-white border-bottom d-flex align-items-center gap-3 p-3">
+                        <!-- Volume cover -->
+                        @if (!string.IsNullOrEmpty(vol.CoverUrl))
+                        {
+                            <img src="@vol.CoverUrl" alt="@vol.Title"
+                                 style="width:100px;height:156px;object-fit:cover;border-radius:4px;flex-shrink:0;" />
+                        }
+                        else
+                        {
+                            <div style="width:100px;height:156px;background:#e9ecef;border-radius:4px;
+                                display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fas fa-book text-muted" style="font-size:13px;"></i>
+                            </div>
+                        }
+                        <div>
+                            <h6 class="mb-0 fw-semibold">@vol.Title</h6>
+                            <span class="text-muted small">@vol.Chapters.Count chapter(s)</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(vol.PdfUrl))
+                        {
+                            <a href="@vol.PdfUrl" target="_blank" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-file-pdf me-1"></i> Read PDF
+                            </a>
+                        }
+                    </div>
+
+                    <div class="card-body p-0">
+                        <table class="table table-hover mb-0" style="font-size:13px;">
+                            <tbody>
+                                @foreach (var ch in vol.PreviewChapters)
+                                {
+                                    <tr>
+                                        <td class="ps-4 py-2">
+                                            <a asp-page="/Chapters/Index"
+                                                   asp-route-slug="@Model.Novel.Slug"
+                                                   asp-route-chSlug="@ch.Slug"
+                                                   class="text-decoration-none text-reset fw-medium">
+                                                @ch.Title
+                                            </a>
+                                        </td>
+                                        <td class="text-end text-muted pe-4 py-2" style="white-space:nowrap;">
+                                            @ch.CreatedAt.ToString("dd/MM/yyyy")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (vol.HiddenCount > 0)
+                        {
+                            <div class="text-center py-2 border-top">
+                                <a href="javascript:void(0)"
+                                       onclick="toggleVolume(@vol.Id)"
+                                       class="text-primary small" id="vol-toggle-@vol.Id">
+                                    Show more (@vol.HiddenCount chapters)
+                                </a>
+                                <table class="table table-hover mb-0 d-none" id="vol-extra-@vol.Id" style="font-size:13px;">
+                                    <tbody>
+                                        @foreach (var ch in vol.Chapters.Skip(5))
+                                        {
+                                            <tr>
+                                                <td class="ps-4 py-2">
+                                                    <a href="/chapters/@ch.Slug" class="text-decoration-none text-reset fw-medium">
+                                                        @ch.Title
+                                                    </a>
+                                                </td>
+                                                <td class="text-end text-muted pe-4 py-2" style="white-space:nowrap;">
+                                                    @ch.CreatedAt.ToString("dd/MM/yyyy")
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- ── Comments ── -->
+        <div id="cmt" class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-semibold mb-4">
+                    <i class="fas fa-comments me-2 text-primary"></i>
+                    Comments
+                    <span class="badge text-bg-secondary ms-2" id="commentCountBadge">@Model.CommentTotal</span>
+                </h5>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="mb-4">
+                        <textarea id="novelCommentInput" class="form-control" rows="3"
+                                  placeholder="Share your thoughts about this novel..."
+                                  maxlength="2000" style="resize:vertical;font-size:14px;"></textarea>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-muted" style="font-size:11px;">
+                                <span id="novelCharCount">0</span>/2000
+                            </span>
+                            <button class="btn btn-primary btn-sm px-4" onclick="postNovelComment()">
+                                <i class="fas fa-paper-plane me-1"></i> Post
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-light border mb-4" style="font-size:14px;">
+                        <a href="/login" class="text-primary fw-medium">Login</a> to post a comment.
+                    </div>
+                }
+                @{
+                    int? currentUserId = User.Identity?.IsAuthenticated == true
+                        ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
+                        : null;
+
+
+                }
+
+                <!-- List -->
+                <div id="novelCommentList">
+                    @foreach (var c in Model.Comments)
+                    {
+                        <div class="comment-item d-flex gap-3 py-3 border-top">
+                            <!-- Avatar -->
+                            <div class="flex-shrink-0">
+                                @if (!string.IsNullOrEmpty(c.AvatarUrl))
+                                {
+                                    <!-- Hiển thị ảnh nếu có AvatarUrl -->
+                                    <img src="@c.AvatarUrl" alt="@c.DisplayName" class="rounded-circle shadow-sm"
+                                         style="width: 38px; height: 38px; object-fit: cover; border: 1px solid rgba(13, 110, 253, 0.2);" />
+                                }
+                                else
+                                {
+                                    <!-- Hiển thị chữ cái đầu nếu không có Avatar -->
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold shadow-sm"
+                                         style="width: 38px; height: 38px; font-size: 14px; background: rgba(13, 110, 253, 0.1); border: 1px solid rgba(13, 110, 253, 0.2);">
+                                        @(string.IsNullOrEmpty(c.DisplayName) ? "?" : c.DisplayName[0].ToString().ToUpper())
+                                    </div>
+                                }
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                    <span class="fw-semibold" style="font-size:14px;">@c.DisplayName</span>
+                                    @if (c.ChapterTitle is not null)
+                                    {
+                                        <a href="/novels/@novel.Slug/chapters/@c.ChapterSlug"
+                                               class="badge text-bg-light border text-decoration-none"
+                                               style="font-size:11px;color:#555!important;">
+                                            <i class="fas fa-bookmark me-1"></i>@c.ChapterTitle
+                                        </a>
+                                    }
+                                    <span class="text-muted" style="font-size:11px;">
+                                        @c.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                    </span>
+                                    @if (c.UserId == currentUserId || User.IsInRole("Admin"))
+                                    {
+                                        <div class="ms-auto d-flex gap-2">
+                                            <button class="btn btn-link p-0 text-muted comment-edit-btn"
+                                                    style="font-size:12px;" title="Edit"
+                                                    data-id="@c.Id"
+                                                    data-content="@c.Content">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            <button class="btn btn-link p-0 text-danger comment-delete-btn"
+                                                    style="font-size:12px;" title="Delete"
+                                                    data-id="@c.Id">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                                <p class="mb-0" style="font-size:14px;line-height:1.6;white-space:pre-wrap;">@c.Content</p>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.CommentTotal == 0)
+                    {
+                        <p class="text-muted text-center py-4 mb-0" style="font-size:14px;" id="noCommentMsg">
+                            No comments yet. Be the first!
+                        </p>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.CommentTotalPages > 1)
+                {
+                    <div class="d-flex justify-content-center align-items-center gap-2 mt-4 pt-3 border-top"
+                         id="novelPager">
+                        <button class="btn btn-sm btn-outline-secondary" id="novelPrevBtn"
+                                onclick="loadNovelComments(novelCurrentPage - 1)" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span style="font-size:13px;">
+                            Page <span id="novelPageLabel">1</span> of
+                            <span id="novelTotalPagesLabel">@Model.CommentTotalPages</span>
+                        </span>
+                        <button class="btn btn-sm btn-outline-secondary" id="novelNextBtn"
+                                onclick="loadNovelComments(novelCurrentPage + 1)"
+                            @(Model.CommentTotalPages <= 1 ? "disabled" : "")>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* <form id="antiForgeryForm" style="display:none">
+    @Html.AntiForgeryToken()
+</form> *@
+
+@* Shared comment edit/delete modal + JS *@
+@await Html.PartialAsync("_CommentActions")
+
+<input type="hidden" name="__RequestVerificationToken"
+       value="@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken" />
+
+@section Scripts {
+    <script>
+        let isFollowing  = @Json.Serialize(Model.IsFollowing);
+        const novelSlug  = '@Model.Novel.Slug';
+        const isLoggedIn = @Json.Serialize(User.Identity?.IsAuthenticated == true);
+        let userRating   = @Json.Serialize(Model.UserRating);
+        let avgRating    = @Json.Serialize(Model.AverageRating);
+
+        // ── Stars init ────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            resetStars();
+
+            document.querySelectorAll('.star-btn').forEach(star => {
+                const score = parseInt(star.dataset.score);
+
+                star.addEventListener('mouseenter', () => hoverStars(score));
+                star.addEventListener('mouseleave', resetStars);
+                star.addEventListener('click',      () => submitRating(score));
+            });
+        });
+
+        // ── Follow ────────────────────────────────────────────
+        async function toggleFollow() {
+            if (!isLoggedIn) { window.location.href = '/login'; return; }
+
+            const btn  = document.getElementById('followBtn');
+            btn.disabled = true;
+
+            try {
+                const res  = await fetch(`/novels/${novelSlug}?handler=ToggleFollow`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': getAntiForgery() }
+                });
+                const data = await res.json();
+
+                isFollowing = data.following;
+                document.getElementById('followIcon').style.color =
+                    isFollowing ? '#dc3545' : '#dee2e6';
+                document.getElementById('followCount').textContent = data.followCount;
+            } catch {
+                alert('Something went wrong. Please try again.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        // ── Rating ────────────────────────────────────────────
+        function hoverStars(score) {
+            if (!isLoggedIn) return;
+            document.querySelectorAll('.star-btn').forEach((s, i) => {
+                s.style.color = i < score ? '#ffc107' : '#dee2e6';
+            });
+        }
+
+        function resetStars() {
+            document.querySelectorAll('.star-btn').forEach((s, i) => {
+                const score = i + 1;
+                if (userRating) {
+                    s.style.color = score <= userRating ? '#ffc107' : '#dee2e6';
+                } else {
+                    s.style.color = score <= Math.round(avgRating) ? '#ffd966' : '#dee2e6';
+                }
+            });
+        }
+
+        async function submitRating(score) {
+            if (!isLoggedIn) { window.location.href = '/login'; return; }
+
+            // Toggle off nếu click lại score cũ
+            const newScore = score === userRating ? null : score;
+
+            try {
+                if (newScore === null) {
+                    // Chưa có unrate handler — giữ rating cũ, bỏ qua
+                    return;
+                }
+                const res  = await fetch(
+                    `/novels/${novelSlug}?handler=Rate&score=${newScore}`, {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': getAntiForgery() }
+                });
+                const data = await res.json();
+
+                userRating = data.userRating;
+                avgRating  = data.averageRating;
+
+                document.getElementById('avgRating').textContent   = data.averageRating.toFixed(1);
+                document.getElementById('ratingCount').textContent = data.ratingCount;
+
+                const lbl = document.getElementById('userRatingLabel');
+                if (lbl) lbl.textContent = data.userRating;
+
+                resetStars();
+            } catch {
+                alert('Something went wrong. Please try again.');
+            }
+        }
+
+        function resetStars() {
+            document.querySelectorAll('.star-btn').forEach((s, i) => {
+                const score = i + 1;
+                if (userRating) {
+                    s.style.color = score <= userRating ? '#ff8c00' : '#dee2e6';
+                } else {
+                    s.style.color = score <= Math.round(avgRating) ? '#ffd966' : '#dee2e6';
+                }
+            });
+        }
+
+
+        // ── Share ─────────────────────────────────────────────
+        function shareNovel() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '@Html.Raw(Model.Novel.Title.Replace("'", "\\'"))',
+                    url:   window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                showToast('Link copied to clipboard!');
+            }
+        }
+
+        // ── Toast helper ──────────────────────────────────────
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className   = 'position-fixed bottom-0 end-0 m-3 alert alert-dark py-2 px-3';
+            t.style.zIndex = 9999;
+            t.textContent  = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+
+        // ── Anti-forgery helper ───────────────────────────────
+        function getAntiForgery() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        }
+
+        function toggleSynopsis() {
+            const el = document.getElementById('synopsisText');
+            const btn = document.getElementById('synopsisToggle');
+            const collapsed = el.style.maxHeight === '120px';
+            el.style.maxHeight = collapsed ? '2000px' : '120px';
+            btn.textContent = collapsed ? 'Show less' : 'Show more';
+        }
+
+        function toggleVolume(id) {
+            const extra  = document.getElementById('vol-extra-' + id);
+            const toggle = document.getElementById('vol-toggle-' + id);
+            const hidden = extra.classList.contains('d-none');
+            extra.classList.toggle('d-none', !hidden);
+            toggle.textContent = hidden ? 'Show less' : toggle.dataset.label;
+        }
+
+        // ── Novel comments + paging ───────────────────────────
+        let novelCurrentPage  = 1;
+        let novelTotalPages   = @Model.CommentTotalPages;
+
+        document.getElementById('novelCommentInput')?.addEventListener('input', function () {
+            document.getElementById('novelCharCount').textContent = this.value.length;
+        });
+
+        async function loadNovelComments(page) {
+            if (page < 1 || page > novelTotalPages) return;
+
+            const list = document.getElementById('novelCommentList');
+            list.style.opacity = '0.5';
+
+            try {
+                const res  = await fetch(`/novels/${novelSlug}?handler=Comments&pageNumber=${page}`);
+                const data = await res.json();
+                console.log(data);
+                novelCurrentPage = data.page;
+                novelTotalPages  = data.totalPages;
+
+                list.innerHTML   = data.comments.length === 0
+                    ? `<p class="text-muted text-center py-4 mb-0" style="font-size:14px;">No comments yet. Be the first!</p>`
+                    : data.comments.map(c => buildNovelCommentHtml(c)).join('');
+
+                const pager = document.getElementById('novelPager');
+
+                if (pager) {
+                    document.getElementById('novelPageLabel').textContent = novelCurrentPage;
+                    document.getElementById('novelTotalPagesLabel').textContent = novelTotalPages;
+                    document.getElementById('novelPrevBtn').disabled = novelCurrentPage <= 1;
+                    document.getElementById('novelNextBtn').disabled = novelCurrentPage >= novelTotalPages;
+                }
+
+                // Scroll to comment section
+                document.getElementById('novelCommentList').closest('.card')
+                    .scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (e) {
+                console.error(e);
+                alert('Failed to load comments.');
+            } finally {
+                list.style.opacity = '1';
+            }
+        }
+
+        // Inject reload hook cho shared edit/delete
+        const __currentUserId = @Json.Serialize(
+                User.Identity?.IsAuthenticated == true
+                        ? int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value)
+                        : (int?)null
+        );
+        const __isAdmin = @Json.Serialize(User.IsInRole("Admin"));
+
+        window.__reloadComments = () => loadNovelComments(novelCurrentPage);
+
+        function buildNovelCommentHtml(c) {
+            const chapterBadge = c.chapterTitle
+                ? `<a href="/novels/${novelSlug}/chapters/${escHtml(c.chapterSlug)}"
+                        class="badge text-bg-light border text-decoration-none"
+                        style="font-size:11px;color:#555!important;">
+                        <i class="fas fa-bookmark me-1"></i>${escHtml(c.chapterTitle)}
+                    </a>`
+                : '';
+
+            const dName = c.displayName ? c.displayName : 'User';
+            const initial = dName.charAt(0).toUpperCase();
+
+            const avatarHtml = c.avatarUrl
+                ? `<img src="${c.avatarUrl}" alt="${escHtml(dName)}" class="rounded-circle shadow-sm"
+                        style="width:38px;height:38px;object-fit:cover;border:1px solid rgba(13,110,253,.2);" />`
+                : `<div class="rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold shadow-sm"
+                        style="width:38px;height:38px;font-size:14px;background:rgba(13,110,253,.1);border:1px solid rgba(13,110,253,.2);">
+                        ${escHtml(initial)}
+                    </div>`;
+
+            const formattedDate = new Date(c.createdAt).toLocaleString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            const canManage = c.userId === __currentUserId || __isAdmin;
+            const actions = canManage
+                ? `
+                    <div class="ms-auto d-flex gap-2">
+                        <button class="btn btn-link p-0 text-muted comment-edit-btn"
+                                style="font-size:12px;"
+                                title="Edit"
+                                data-id="${c.id}"
+                                data-content="${escHtml(c.content)}">
+                            <i class="fas fa-pen"></i>
+                        </button>
+
+                        <button class="btn btn-link p-0 text-danger comment-delete-btn"
+                                style="font-size:12px;"
+                                title="Delete"
+                                data-id="${c.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                  `
+                : '';
+
+            return `
+                <div class="comment-item d-flex gap-3 py-3 border-top">
+                    <div class="flex-shrink-0">
+                        ${avatarHtml}
+                    </div>
+                    <div class="flex-grow-1" style="min-width:0;">
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="fw-semibold" style="font-size:14px;">${escHtml(dName)}</span>
+                            ${chapterBadge}
+                            <span class="text-muted" style="font-size:11px;">${formattedDate}</span>
+                            ${actions}
+                        </div>
+                        <p class="mb-0" style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escHtml(c.content)}</p>
+                    </div>
+                </div>`;
+        }
+
+        // Event delegation cho edit/delete buttons (server-rendered lần đầu)
+        document.getElementById('novelCommentList').addEventListener('click', function(e) {
+            const editBtn   = e.target.closest('.comment-edit-btn');
+            const deleteBtn = e.target.closest('.comment-delete-btn');
+
+            if (editBtn) {
+                const id      = parseInt(editBtn.dataset.id);
+                const content = editBtn.dataset.content;
+                openEditComment(id, content);
+            }
+
+            if (deleteBtn) {
+                const id = parseInt(deleteBtn.dataset.id);
+                deleteComment(id);
+            }
+        });
+
+        async function postNovelComment() {
+            const input   = document.getElementById('novelCommentInput');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const btn = document.querySelector('button[onclick="postNovelComment()"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Posting...';
+
+            try {
+                const res  = await fetch(`/novels/${novelSlug}?handler=Comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': getAntiForgery()
+                    },
+                    body: `content=${encodeURIComponent(content)}`
+                });
+                const data = await res.json();
+                if (data.error) { alert(data.error); return; }
+
+                // Sau khi post, reload lại trang 1 để thấy comment mới nhất
+                const badge = document.getElementById('commentCountBadge');
+                badge.textContent = parseInt(badge.textContent) + 1;
+
+                // Cập nhật total pages nếu cần
+                const total  = parseInt(badge.textContent);
+                novelTotalPages = Math.ceil(total / 10);
+                const tpLabel = document.getElementById('novelTotalPagesLabel');
+                if (tpLabel) tpLabel.textContent = novelTotalPages;
+
+                // Hiện pager nếu lần đầu vượt 10 comments
+                if (total === 11) {
+                    const pager = document.getElementById('novelPager');
+                    if (!pager) {
+                        document.querySelector('.card-body').insertAdjacentHTML('beforeend', `
+                            <div class="d-flex justify-content-center align-items-center gap-2 mt-4 pt-3 border-top" id="novelPager">
+                                <button class="btn btn-sm btn-outline-secondary" id="novelPrevBtn"
+                                        onclick="loadNovelComments(novelCurrentPage - 1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span style="font-size:13px;">
+                                    Page <span id="novelPageLabel">1</span> of
+                                    <span id="novelTotalPagesLabel">${novelTotalPages}</span>
+                                </span>
+                                <button class="btn btn-sm btn-outline-secondary" id="novelNextBtn"
+                                        onclick="loadNovelComments(novelCurrentPage + 1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>`);
+                    }
+                }
+
+                await loadNovelComments(1);
+                input.value = '';
+                document.getElementById('novelCharCount').textContent = '0';
+            } catch {
+                alert('Something went wrong. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Post';
+            }
+        }
+
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // Store original labels on load
+        document.querySelectorAll('[id^="vol-toggle-"]').forEach(el => {
+            el.dataset.label = el.textContent;
+        });
+    </script>
+}

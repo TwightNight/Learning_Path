@@ -1,0 +1,139 @@
+﻿<!-- ── Shared comment edit/delete ── -->
+<!-- Inline edit modal (dùng chung) -->
+<div id="editCommentModal" style="display:none;position:fixed;inset:0;z-index:2000;
+    background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;width:min(520px,92vw);
+        box-shadow:0 8px 32px rgba(0,0,0,.2);overflow:hidden;">
+        <div style="padding:16px 20px;border-bottom:1px solid #dee2e6;
+            display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:600;font-size:15px;">Edit comment</span>
+            <button onclick="closeEditModal()"
+                    style="border:none;background:none;font-size:18px;cursor:pointer;color:#888;">
+                ✕
+            </button>
+        </div>
+        <div style="padding:20px;">
+            <textarea id="editCommentInput" rows="4"
+                      style="width:100%;border:1px solid #dee2e6;border-radius:8px;
+            padding:10px 12px;font-size:14px;resize:vertical;
+            line-height:1.6;outline:none;box-sizing:border-box;"
+                      maxlength="2000"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                <span style="font-size:11px;color:#aaa;">
+                    <span id="editCharCount">0</span>/2000
+                </span>
+                <div style="display:flex;gap:8px;">
+                    <button onclick="closeEditModal()"
+                            style="padding:6px 16px;border:1px solid #dee2e6;border-radius:6px;
+                        background:#fff;cursor:pointer;font-size:13px;">
+                        Cancel
+                    </button>
+                    <button id="editSaveBtn" onclick="saveEditComment()"
+                            style="padding:6px 20px;border:none;border-radius:6px;
+                        background:#0d6efd;color:#fff;cursor:pointer;font-size:13px;font-weight:500;">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Shared comment edit / delete ──────────────────────
+    // Phụ thuộc: mỗi trang inject hàm window.__reloadComments = async () => {...}
+
+    let __editingCommentId = null;
+
+    // Mở modal edit
+    function openEditComment(id, currentContent) {
+        __editingCommentId = id;
+        const input = document.getElementById('editCommentInput');
+        input.value = currentContent;
+        document.getElementById('editCharCount').textContent = currentContent.length;
+        const modal = document.getElementById('editCommentModal');
+        modal.style.display = 'flex';
+        input.focus();
+    }
+
+    function closeEditModal() {
+        document.getElementById('editCommentModal').style.display = 'none';
+        __editingCommentId = null;
+    }
+
+    // Đóng khi click backdrop
+    document.getElementById('editCommentModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    document.getElementById('editCommentInput').addEventListener('input', function() {
+        document.getElementById('editCharCount').textContent = this.value.length;
+    });
+
+    // Lưu edit
+    async function saveEditComment() {
+        const content = document.getElementById('editCommentInput').value.trim();
+        if (!content || !__editingCommentId) return;
+
+        const btn = document.getElementById('editSaveBtn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+            const res  = await fetch('/comments?handler=Edit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': __getAntiForgery()
+                },
+                body: `id=${__editingCommentId}&content=${encodeURIComponent(content)}`
+            });
+            const data = await res.json();
+
+            if (data.error) { alert(data.error); return; }
+
+            closeEditModal();
+            if (typeof window.__reloadComments === 'function')
+                await window.__reloadComments();
+        } catch {
+            alert('Failed to save. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save';
+        }
+    }
+
+    // Xoá comment
+    async function deleteComment(id) {
+        if (!confirm('Delete this comment?')) return;
+
+        try {
+            const res  = await fetch('/comments?handler=Delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': __getAntiForgery()
+                },
+                body: `id=${id}`
+            });
+            const data = await res.json();
+
+            if (data.error) { alert(data.error); return; }
+
+            if (typeof window.__reloadComments === 'function')
+                await window.__reloadComments();
+        } catch {
+            alert('Failed to delete. Please try again.');
+        }
+    }
+
+    // Anti-forgery dùng chung
+    function __getAntiForgery() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+    }
+
+    // ESC để đóng modal
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeEditModal();
+    });
+</script>

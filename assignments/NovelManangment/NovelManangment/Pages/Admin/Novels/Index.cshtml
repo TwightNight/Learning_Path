@@ -1,0 +1,310 @@
+﻿@page "/admin/novels"
+@model NovelManangment.Pages.Admin.Novels.IndexModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = "Admin — Novels";
+
+    var statusMeta = new Dictionary<NovelStatus, (string label, string css, string icon)>
+    {
+        [NovelStatus.Ongoing]   = ("Ongoing",   "text-bg-success", "fa-circle-play"),
+        [NovelStatus.Completed] = ("Completed", "text-bg-primary", "fa-circle-check"),
+        [NovelStatus.Hiatus]    = ("Hiatus",    "text-bg-warning", "fa-circle-pause"),
+        [NovelStatus.Dropped]   = ("Dropped",   "text-bg-danger",  "fa-circle-xmark"),
+    };
+
+    var typeMeta = new Dictionary<NovelType, (string label, string css)>
+    {
+        [NovelType.Original]          = ("Original", "text-bg-info"),
+        [NovelType.Raw]               = ("Raw",      "text-bg-secondary"),
+        [NovelType.MachineTranslated] = ("MT",       "text-bg-warning"),
+        [NovelType.HumanTranslated]   = ("HT",       "text-bg-primary"),
+        [NovelType.Parody]            = ("Parody",   "text-bg-dark"),
+    };
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="fas fa-shield-halved text-danger me-2"></i>Admin — Novels
+                </h3>
+                <small class="text-muted">@Model.TotalCount novel(s) found</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+
+        <!-- ── Filter bar ── -->
+        <form method="get" class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-2">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+
+                    <!-- Search -->
+                    <div class="input-group input-group-sm" style="max-width:280px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" name="search" value="@Model.Search"
+                               class="form-control" placeholder="Title / author / publisher..." />
+                    </div>
+
+                    <!-- Status -->
+                    <select name="status" class="form-select form-select-sm" style="max-width:130px;">
+                        <option value="">All Status</option>
+                        @foreach (var s in Enum.GetValues<NovelStatus>())
+                        {
+                            <option value="@s" selected="@(Model.StatusFilter == s.ToString())">
+                                @statusMeta[s].label
+                            </option>
+                        }
+                    </select>
+
+                    <!-- Type -->
+                    <select name="type" class="form-select form-select-sm" style="max-width:130px;">
+                        <option value="">All Types</option>
+                        @foreach (var t in Enum.GetValues<NovelType>())
+                        {
+                            <option value="@t" selected="@(Model.TypeFilter == t.ToString())">
+                                @typeMeta[t].label
+                            </option>
+                        }
+                    </select>
+
+                    <!-- Show deleted -->
+                    <select name="show-deleted" class="form-select form-select-sm" style="max-width:140px;">
+                        <option value="all"     selected="@(Model.ShowDeleted is null or "all")">All</option>
+                        <option value="active"  selected="@(Model.ShowDeleted == "active")">Active only</option>
+                        <option value="deleted" selected="@(Model.ShowDeleted == "deleted")">Deactivated</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.StatusFilter)
+                         || !string.IsNullOrEmpty(Model.TypeFilter))
+                    {
+                        <a href="/admin/novels" class="btn btn-sm btn-link text-muted">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </a>
+                    }
+                </div>
+            </div>
+        </form>
+
+        <!-- ── Novel list ── -->
+        @if (!Model.Novels.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-book fa-3x mb-3 d-block opacity-50"></i>
+                <p>No novels match your filter.</p>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var novel in Model.Novels)
+                {
+                    <div class="card border-0 shadow-sm novel-row
+                                @(novel.IsDeleted ? "border-warning border opacity-75" : "")">
+
+                        @if (novel.IsDeleted)
+                        {
+                            <div class="card-header bg-warning bg-opacity-10 border-0 py-1 px-3"
+                                 style="font-size:12px;color:#856404;">
+                                <i class="fas fa-ban me-1"></i>
+                                Deactivated
+                                @if (novel.DeletedAt.HasValue)
+                                {
+                                    <span class="ms-1 text-muted">
+                                        since @novel.DeletedAt.Value.ToString("dd MMM yyyy")
+                                    </span>
+                                }
+                            </div>
+                        }
+
+                        <div class="card-body p-3">
+                            <div class="d-flex gap-3">
+
+                                <!-- Cover -->
+                                <a href="/novels/@novel.Slug" target="_blank" class="flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(novel.CoverUrl))
+                                    {
+                                        <img src="@novel.CoverUrl" alt="@novel.Title"
+                                             style="width:64px;height:90px;object-fit:cover;
+                                                    border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15);" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:64px;height:90px;background:#e9ecef;
+                                                    border-radius:6px;display:flex;
+                                                    align-items:center;justify-content:center;">
+                                            <i class="fas fa-book text-muted"></i>
+                                        </div>
+                                    }
+                                </a>
+
+                                <!-- Info -->
+                                <div class="flex-grow-1" style="min-width:0;">
+                                    <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap">
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold">
+                                                <a href="/novels/@novel.Slug" target="_blank"
+                                                   class="text-decoration-none text-reset">
+                                                    @novel.Title
+                                                </a>
+                                            </h6>
+                                            <div class="text-muted mb-1" style="font-size:12px;">
+                                                <i class="fas fa-user me-1"></i>
+                                                Publisher: <strong>@novel.PublisherName</strong>
+                                            </div>
+                                            <div class="d-flex gap-1 flex-wrap">
+                                                <span class="badge @typeMeta[novel.Type].css" style="font-size:10px;">
+                                                    @typeMeta[novel.Type].label
+                                                </span>
+                                                <span class="badge @statusMeta[novel.Status].css" style="font-size:10px;">
+                                                    <i class="fas @statusMeta[novel.Status].icon me-1"></i>
+                                                    @statusMeta[novel.Status].label
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Action buttons -->
+                                        <div class="d-flex gap-2 flex-shrink-0">
+                                            @if (!novel.IsDeleted)
+                                            {
+                                                <a href="/novels/@novel.Slug" target="_blank"
+                                                   class="btn btn-sm btn-outline-secondary" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/novels/edit/@novel.Id"
+                                                   class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                <a href="/novels/@novel.Id/manage"
+                                                   class="btn btn-sm btn-outline-success" title="Manage">
+                                                    <i class="fas fa-layer-group"></i>
+                                                </a>
+                                            }
+
+                                            <!-- Deactivate / Restore -->
+                                            <form method="post" asp-page-handler="ToggleDelete"
+                                                  class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="novelId" value="@novel.Id" />
+                                                <input type="hidden" name="search" value="@Model.Search" />
+                                                <input type="hidden" name="status" value="@Model.StatusFilter" />
+                                                <input type="hidden" name="type" value="@Model.TypeFilter" />
+                                                <input type="hidden" name="show-deleted" value="@Model.ShowDeleted" />
+                                                <input type="hidden" name="page-number" value="@Model.PageNumber" />
+                                                <button type="submit"
+                                                        class="btn btn-sm @(novel.IsDeleted ? "btn-outline-success" : "btn-outline-warning")"
+                                                        title="@(novel.IsDeleted ? "Restore" : "Deactivate")"
+                                                        onclick="return confirm('@(novel.IsDeleted ? "Restore this novel?" : "Deactivate this novel?")')">
+                                                    <i class="fas @(novel.IsDeleted ? "fa-rotate-left" : "fa-ban")"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- Hard delete -->
+                                            <button class="btn btn-sm btn-outline-danger" title="Delete permanently"
+                                                    onclick="confirmDelete(@novel.Id, '@Html.Raw(novel.Title.Replace("'", "\\'"))')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stats -->
+                                    <div class="d-flex gap-3 flex-wrap mt-2" style="font-size:12px;color:#888;">
+                                        <span><i class="fas fa-book-open me-1"></i>@novel.TotalVolumes vol</span>
+                                        <span><i class="fas fa-list-ol me-1"></i>@novel.TotalChapters ch</span>
+                                        <span><i class="fas fa-eye me-1"></i>@novel.TotalViews.ToString("N0")</span>
+                                        <span><i class="fas fa-heart me-1 text-danger"></i>@novel.FollowCount</span>
+                                        <span><i class="fas fa-calendar-plus me-1"></i>@novel.CreatedAt.ToString("dd MMM yyyy")</span>
+                                        @if (novel.LastUpdatedAt.HasValue)
+                                        {
+                                            <span class="text-success">
+                                                <i class="fas fa-clock me-1"></i>
+                                                @novel.LastUpdatedAt.Value.ToString("dd MMM yyyy")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        @for (int p = 1; p <= Model.TotalPages; p++)
+                        {
+                            <li class="page-item @(p == Model.PageNumber ? "active" : "")">
+                                <a class="page-link"
+                                   href="?search=@Model.Search&status=@Model.StatusFilter&type=@Model.TypeFilter&show-deleted=@Model.ShowDeleted&page-number=@p">
+                                    @p
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            }
+        }
+
+    </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal fade" id="modalDelete" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Delete">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novelId" id="del_novelId" />
+                <input type="hidden" name="search" value="@Model.Search" />
+                <input type="hidden" name="status" value="@Model.StatusFilter" />
+                <input type="hidden" name="type" value="@Model.TypeFilter" />
+                <input type="hidden" name="show-deleted" value="@Model.ShowDeleted" />
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Permanently Delete
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="small mb-1">You are about to permanently delete:</p>
+                    <p class="fw-semibold" id="del_novelTitle"></p>
+                    <p class="text-danger small mb-0">
+                        <i class="fas fa-warning me-1"></i>
+                        All volumes, chapters and comments will be permanently deleted. This cannot be undone.
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-danger">Delete Forever</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .novel-row { transition: box-shadow .15s; }
+    .novel-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1) !important; }
+</style>
+
+@section Scripts {
+<script>
+    function confirmDelete(id, title) {
+        document.getElementById('del_novelId').value        = id;
+        document.getElementById('del_novelTitle').textContent = title;
+        new bootstrap.Modal(document.getElementById('modalDelete')).show();
+    }
+</script>
+}

@@ -8,9 +8,9 @@ namespace ContosoUniversity.Pages
     [Authorize]
     public class IndexModel : PageModel
     {
-        private readonly SchoolContext _context;
+        private readonly ISchoolContext _context;
 
-        public IndexModel(SchoolContext context)
+        public IndexModel(ISchoolContext context)
         {
             _context = context;
         }

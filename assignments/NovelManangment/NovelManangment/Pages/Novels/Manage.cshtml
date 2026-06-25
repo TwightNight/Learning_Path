@@ -1,0 +1,670 @@
+﻿@page "/novels/{novelId:int}/manage"
+@model NovelManangment.Pages.Novels.ManageModel
+@using NovelManangment.Models
+@{
+    ViewData["Title"] = $"Manage — {Model.Novel.Title}";
+    var novelId = Model.Novel.Id;
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+                <h3 class="mb-0">
+                    <i class="fas fa-layer-group text-primary me-2"></i>Manage Content
+                </h3>
+                <small class="text-muted">
+                    <a href="/novels/@Model.Novel.Slug" class="text-decoration-none">
+                        @Model.Novel.Title
+                    </a>
+                </small>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalVolume', null)">
+                <i class="fas fa-plus me-1"></i> Add Volume
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="row g-3">
+
+      <!-- ── LEFT: Tree ── -->
+      <div class="col-lg-5 col-xl-4">
+        <div class="card border-0 shadow-sm" style="position:sticky;top:72px;">
+          <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-2">
+            <span class="fw-semibold" style="font-size:14px;">
+              <i class="fas fa-sitemap me-1 text-muted"></i> Structure
+            </span>
+            <span class="badge text-bg-secondary">
+              @Model.Tree.Count vol · @Model.Tree.Sum(v => v.Chapters.Count) ch
+            </span>
+          </div>
+          <div class="card-body p-2" style="max-height:calc(100vh - 160px);overflow-y:auto;">
+
+            <!-- Novel root -->
+            <div class="tree-node tree-root px-2 py-1 rounded mb-1">
+              <i class="fas fa-book text-primary me-1"></i>
+              <span class="fw-semibold small">@Model.Novel.Title</span>
+            </div>
+
+            @if (!Model.Tree.Any())
+            {
+              <div class="text-center text-muted py-4 small">
+                <i class="fas fa-inbox d-block fa-2x mb-2 opacity-50"></i>
+                No volumes yet.<br/>Click <strong>Add Volume</strong> to start.
+              </div>
+            }
+
+            @foreach (var vol in Model.Tree)
+            {
+              <div class="tree-volume ms-3 mb-1" id="volNode_@vol.Id">
+                <!-- Volume row -->
+                <div class="tree-node d-flex align-items-center gap-1 px-2 py-1 rounded"
+                     onclick="toggleVolTree(@vol.Id)">
+                  <i class="fas fa-chevron-down tree-chevron me-1 text-muted"
+                     id="chev_@vol.Id" style="font-size:10px;transition:transform .2s;"></i>
+                  <i class="fas fa-book-open text-warning me-1" style="font-size:12px;"></i>
+                  <span class="small flex-grow-1 fw-medium tree-label" title="@vol.Title">@vol.Title</span>
+                  <span class="badge text-bg-light border text-muted ms-auto"
+                        style="font-size:10px;">@vol.Chapters.Count</span>
+
+                  <!-- Volume actions -->
+                  <div class="tree-actions d-flex gap-1 ms-1">
+                    @* Volume edit button - trong tree *@
+                    <button class="btn btn-xs btn-link p-0 text-primary"
+                            title="Edit volume"
+                            data-vol-id="@vol.Id"
+                            data-vol-title="@vol.Title"
+                            data-vol-number="@vol.VolumeNumber"
+                            data-vol-type="@((int)vol.Type)"
+                            data-vol-pdf="@vol.PdfUrl"
+                            data-vol-cover="@vol.CoverUrl"
+                            data-vol-desc="@vol.Description"
+                            onclick="event.stopPropagation();editVolume(this)">
+                        <i class="fas fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-xs btn-link p-0 text-success"
+                            title="Add chapter"
+                            onclick="event.stopPropagation();openModal('modalChapter',
+                              null, @vol.Id, '@Html.Raw(vol.Title.Replace("'","\\\'"))')">
+                      <i class="fas fa-plus" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-xs btn-link p-0 text-danger"
+                            title="Delete volume"
+                            onclick="event.stopPropagation();confirmDelete('volume',@vol.Id,'@Html.Raw(vol.Title.Replace("'","\\\'"))')">
+                      <i class="fas fa-trash" style="font-size:11px;"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Chapters list -->
+                <div class="tree-children ms-3" id="volChildren_@vol.Id">
+                  @if (!vol.Chapters.Any())
+                  {
+                    <div class="text-muted small ps-2 py-1 fst-italic">No chapters</div>
+                  }
+                  @foreach (var ch in vol.Chapters)
+                  {
+                    <div class="tree-node d-flex align-items-center gap-1 px-2 py-1 rounded"
+                         id="chNode_@ch.Id">
+                      <i class="fas fa-file-alt text-muted me-1" style="font-size:11px;flex-shrink:0;"></i>
+                      <span class="small flex-grow-1 tree-label text-truncate" title="@ch.Title">
+                        Ch.@ch.ChapterNumber — @ch.Title
+                      </span>
+                      <div class="tree-actions d-flex gap-1 ms-1">
+                        <a href="/novels/@Model.Novel.Slug/chapters/@ch.Slug"
+                           target="_blank"
+                           class="btn btn-xs btn-link p-0 text-muted" title="View">
+                          <i class="fas fa-external-link-alt" style="font-size:10px;"></i>
+                        </a>
+                        @* Chapter edit button - trong tree *@
+                        <button class="btn btn-xs btn-link p-0 text-primary" title="Edit chapter"
+                                data-ch-id="@ch.Id"
+                                data-ch-title="@ch.Title"
+                                data-ch-number="@ch.ChapterNumber"
+                                data-vol-id="@vol.Id"
+                                data-vol-title="@vol.Title"
+                                onclick="editChapter(this)">
+                            <i class="fas fa-pen" style="font-size:10px;"></i>
+                        </button>
+                        <button class="btn btn-xs btn-link p-0 text-danger" title="Delete chapter"
+                                onclick="confirmDelete('chapter',@ch.Id,'@Html.Raw(ch.Title.Replace("'","\\\'"))')">
+                          <i class="fas fa-trash" style="font-size:10px;"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: Quick stats ── -->
+      <div class="col-lg-7 col-xl-8">
+        <div class="row g-3 mb-3">
+          <div class="col-sm-4">
+            <div class="card border-0 shadow-sm text-center py-3">
+              <div class="display-6 fw-bold text-primary">@Model.Tree.Count</div>
+              <div class="text-muted small">Volumes</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="card border-0 shadow-sm text-center py-3">
+              <div class="display-6 fw-bold text-success">@Model.Tree.Sum(v => v.Chapters.Count)</div>
+              <div class="text-muted small">Chapters</div>
+            </div>
+          </div>
+          <div class="col-sm-4">
+            <div class="card border-0 shadow-sm text-center py-3">
+              <div class="display-6 fw-bold text-warning">
+                @(Model.Tree.Any() ? Model.Tree.Max(v => v.VolumeNumber) : 0)
+              </div>
+              <div class="text-muted small">Latest Vol #</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Volume cards detail -->
+        @foreach (var vol in Model.Tree)
+        {
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white d-flex align-items-center gap-2 py-2">
+              <span class="badge text-bg-warning">Vol.@vol.VolumeNumber</span>
+              <span class="fw-semibold flex-grow-1">@vol.Title</span>
+              <span class="badge text-bg-light border text-muted small">@vol.Type</span>
+              <button class="btn btn-sm btn-outline-success ms-auto"
+                      onclick="openModal('modalChapter', null, @vol.Id, '@Html.Raw(vol.Title.Replace("'","\\\'"))')">
+                <i class="fas fa-plus me-1"></i> Add Chapter
+              </button>
+            </div>
+            @if (vol.Chapters.Any())
+            {
+              <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0" style="font-size:13px;">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-3">#</th>
+                      <th>Title</th>
+                      <th class="text-end pe-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach (var ch in vol.Chapters)
+                    {
+                      <tr>
+                        <td class="ps-3 text-muted">@ch.ChapterNumber</td>
+                        <td>@ch.Title</td>
+                        <td class="text-end pe-3">
+                          <div class="d-flex gap-2 justify-content-end">
+                            <a href="/novels/@Model.Novel.Slug/chapters/@ch.Slug"
+                               target="_blank" class="btn btn-xs btn-outline-secondary"
+                               title="View">
+                              <i class="fas fa-eye"></i>
+                            </a>
+                            @* Chapter edit button - trong table bên phải *@
+                            <button class="btn btn-xs btn-outline-primary"
+                                    data-ch-id="@ch.Id"
+                                    data-ch-title="@ch.Title"
+                                    data-ch-number="@ch.ChapterNumber"
+                                    data-vol-id="@vol.Id"
+                                    data-vol-title="@vol.Title"
+                                    onclick="editChapter(this)">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="btn btn-xs btn-outline-danger"
+                                    onclick="confirmDelete('chapter',@ch.Id,'@Html.Raw(ch.Title.Replace("'","\\\'"))')">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+            else
+            {
+              <div class="text-center text-muted py-3 small fst-italic">No chapters yet.</div>
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Volume
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalVolume" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" id="formVolume">
+        <input type="hidden" name="novelId" value="@novelId" />
+        <input type="hidden" name="volumeId" id="vol_id" value="" />
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="volModalTitle">Add Volume</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-8">
+              <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+              <input type="text" name="title" id="vol_title" class="form-control"
+                     placeholder="Volume title..." required />
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-semibold">Number</label>
+              <input type="number" name="volumeNumber" id="vol_number" class="form-control"
+                     value="1" min="0" required />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Type</label>
+              <select name="type" id="vol_type" class="form-select">
+                <option value="0">Normal</option>
+                <option value="1">Extra</option>
+                <option value="2">Illustration</option>
+                <option value="3">Announcement</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Cover URL</label>
+              <input type="url" name="coverUrl" id="vol_cover" class="form-control"
+                     placeholder="https://..." />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">PDF URL</label>
+              <input type="url" name="pdfUrl" id="vol_pdf" class="form-control"
+                     placeholder="https://..." />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea name="description" id="vol_desc" class="form-control" rows="3"
+                        placeholder="Optional..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="volSubmitBtn">Save Volume</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Chapter
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalChapter" tabindex="-1" style="--bs-modal-width:860px;">
+  <div class="modal-dialog modal-lg" style="max-width:860px;">
+    <div class="modal-content">
+      <form method="post" id="formChapter">
+        <input type="hidden" name="novelId" value="@novelId" />
+        <input type="hidden" name="chapterId" id="ch_id" value="" />
+        <input type="hidden" name="volumeId" id="ch_volumeId" value="" />
+
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title" id="chModalTitle">Add Chapter</h5>
+            <small class="text-muted" id="chVolLabel"></small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-8">
+              <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+              <input type="text" name="title" id="ch_title" class="form-control"
+                     placeholder="Chapter title..." required />
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-semibold">Chapter #</label>
+              <input type="number" name="chapterNumber" id="ch_number" class="form-control"
+                     value="1" min="0" step="0.5" required />
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Content</label>
+              <!-- Quill toolbar -->
+              <div id="quilToolbar">
+                <span class="ql-formats">
+                  <button class="ql-bold"></button>
+                  <button class="ql-italic"></button>
+                  <button class="ql-underline"></button>
+                  <button class="ql-strike"></button>
+                </span>
+                <span class="ql-formats">
+                    <button class="ql-abbr" title="Add annotation">
+                        <svg viewBox="0 0 18 18" style="width:16px;height:16px;">
+                            <text x="1" y="14" font-size="12" font-weight="bold"
+                                  fill="currentColor" font-family="serif">A</text>
+                            <line x1="1" y1="16" x2="12" y2="16"
+                                  stroke="currentColor" stroke-width="1.5"
+                                  stroke-dasharray="2,1"/>
+                        </svg>
+                    </button>
+                </span>
+                <span class="ql-formats">
+                  <select class="ql-header">
+                    <option value="1">H1</option>
+                    <option value="2">H2</option>
+                    <option value="3">H3</option>
+                    <option selected></option>
+                  </select>
+                </span>
+                <span class="ql-formats">
+                  <button class="ql-align" value=""></button>
+                  <button class="ql-align" value="center"></button>
+                  <button class="ql-align" value="right"></button>
+                </span>
+                <span class="ql-formats">
+                  <button class="ql-blockquote"></button>
+                  <button class="ql-image"></button>
+                  <button class="ql-link"></button>
+                </span>
+                <span class="ql-formats">
+                  <button class="ql-clean"></button>
+                </span>
+              </div>
+              <div id="quillEditor" style="height:320px;font-size:15px;"></div>
+              <input type="hidden" name="content" id="ch_content" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="chSubmitBtn">Save Chapter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODAL: Delete confirm
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalDelete" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <form method="post" id="formDelete">
+        <input type="hidden" name="novelId" value="@novelId" />
+        <input type="hidden" id="del_id" name="" value="" />
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Delete</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="mb-1 small">Are you sure you want to delete:</p>
+          <p class="fw-semibold" id="del_label"></p>
+          <p class="text-danger small mb-0" id="del_warning"></p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+
+<style>
+/* Tree */
+.tree-node {
+    cursor: pointer;
+    transition: background .12s;
+    user-select: none;
+}
+.tree-node:hover { background: rgba(0,0,0,.04); }
+.tree-label {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+.tree-actions { opacity: 0; transition: opacity .15s; }
+.tree-node:hover .tree-actions { opacity: 1; }
+
+/* Volume collapse */
+.tree-children { overflow: hidden; transition: max-height .25s ease; }
+
+/* xs button */
+.btn-xs {
+    padding: 1px 5px;
+    font-size: 11px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+/* Quill editor border */
+#quillEditor { border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 4px 4px; }
+#quilToolbar { border-radius: 4px 4px 0 0; }
+</style>
+
+@section Scripts {
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+// ── Safe localStorage wrapper ─────────────────────────
+const ls = {
+    get(key, def = null) {
+        try { return localStorage.getItem(key) ?? def; }
+        catch { return def; }
+    },
+    set(key, val) {
+        try { localStorage.setItem(key, val); }
+        catch { /* blocked by tracking prevention */ }
+    }
+};
+
+// ── 1. Register AbbrBlot TRƯỚC khi new Quill ─────────
+const Inline = Quill.import('blots/inline');
+
+class AbbrBlot extends Inline {
+    static create(title) {
+        const node = super.create();
+        node.setAttribute('title', title);
+        node.style.cssText = 'border-bottom:1px dashed #888;cursor:help;text-decoration:none;';
+        return node;
+    }
+    static formats(node) {
+        return node.getAttribute('title');
+    }
+}
+AbbrBlot.blotName = 'abbr';
+AbbrBlot.tagName  = 'abbr';
+Quill.register(AbbrBlot);
+
+// ── 2. Khởi tạo Quill ────────────────────────────────
+const quill = new Quill('#quillEditor', {
+    theme: 'snow',
+    modules: { toolbar: '#quilToolbar' },
+    placeholder: 'Write chapter content here...'
+});
+
+// ── 3. Abbr handler ───────────────────────────────────
+quill.getModule('toolbar').addHandler('abbr', () => {
+    const range = quill.getSelection();
+    if (!range || range.length === 0) {
+        alert('Please select the text you want to annotate first.');
+        return;
+    }
+    const selectedText = quill.getText(range.index, range.length);
+    const title = prompt(`Add annotation for "${selectedText}":`, '');
+    if (title === null) return;
+    if (!title.trim()) {
+        quill.format('abbr', false);
+        return;
+    }
+    quill.format('abbr', title.trim());
+});
+
+// ── Tree collapse ─────────────────────────────────────
+function toggleVolTree(volId) {
+    const children = document.getElementById('volChildren_' + volId);
+    const chev     = document.getElementById('chev_' + volId);
+    const isOpen   = children.style.display !== 'none';
+    children.style.display = isOpen ? 'none' : '';
+    chev.style.transform   = isOpen ? 'rotate(-90deg)' : '';
+}
+
+// ── Volume Modal ──────────────────────────────────────
+function openModal(modalId, data, volId, volTitle) {
+    if (modalId === 'modalVolume') {
+        document.getElementById('volModalTitle').textContent = 'Add Volume';
+        document.getElementById('volSubmitBtn').textContent  = 'Save Volume';
+        document.getElementById('vol_id').value     = '';
+        document.getElementById('vol_title').value  = '';
+        document.getElementById('vol_number').value = @(Model.Tree.Any() ? Model.Tree.Max(v => v.VolumeNumber) : 0) + 1;
+        document.getElementById('vol_type').value   = 0;
+        document.getElementById('vol_cover').value  = '';
+        document.getElementById('vol_pdf').value    = '';
+        document.getElementById('vol_desc').value   = '';
+        document.getElementById('formVolume').action = '?handler=CreateVolume';
+    }
+
+    if (modalId === 'modalChapter') {
+        document.getElementById('chModalTitle').textContent = 'Add Chapter';
+        document.getElementById('chSubmitBtn').textContent  = 'Save Chapter';
+        document.getElementById('chVolLabel').textContent   = '📖 ' + (volTitle || '');
+        document.getElementById('ch_id').value       = '';
+        document.getElementById('ch_volumeId').value = volId || '';
+        document.getElementById('ch_title').value    = '';
+        document.getElementById('ch_number').value   = 1;
+        quill.root.innerHTML = '';
+        document.getElementById('formChapter').action = '?handler=CreateChapter';
+    }
+
+    new bootstrap.Modal(document.getElementById(modalId)).show();
+}
+
+// ── Edit Volume ───────────────────────────────────────
+function editVolume(btn) {
+    document.getElementById('volModalTitle').textContent = 'Edit Volume';
+    document.getElementById('volSubmitBtn').textContent  = 'Update Volume';
+    document.getElementById('vol_id').value     = btn.dataset.volId;
+    document.getElementById('vol_title').value  = btn.dataset.volTitle;
+    document.getElementById('vol_number').value = btn.dataset.volNumber;
+    document.getElementById('vol_type').value   = btn.dataset.volType;
+    document.getElementById('vol_cover').value  = btn.dataset.volCover || '';
+    document.getElementById('vol_pdf').value    = btn.dataset.volPdf   || '';
+    document.getElementById('vol_desc').value   = btn.dataset.volDesc  || '';
+    document.getElementById('formVolume').action = '?handler=EditVolume';
+    new bootstrap.Modal(document.getElementById('modalVolume')).show();
+}
+
+// ── Edit Chapter ──────────────────────────────────────
+async function editChapter(btn) {
+    document.getElementById('chModalTitle').textContent = 'Edit Chapter';
+    document.getElementById('chSubmitBtn').textContent  = 'Update Chapter';
+    document.getElementById('chVolLabel').textContent   = '📖 ' + (btn.dataset.volTitle || '');
+    document.getElementById('ch_id').value       = btn.dataset.chId;
+    document.getElementById('ch_volumeId').value = btn.dataset.volId;
+    document.getElementById('ch_title').value    = btn.dataset.chTitle;
+    document.getElementById('ch_number').value   = btn.dataset.chNumber;
+    document.getElementById('formChapter').action = '?handler=EditChapter';
+
+    quill.root.innerHTML = '<p class="text-muted">Loading content...</p>';
+    const modal = new bootstrap.Modal(document.getElementById('modalChapter'));
+    modal.show();
+
+    try {
+        const res  = await fetch(`?handler=ChapterContent&chapterId=${btn.dataset.chId}`);
+        const data = await res.json();
+        quill.root.innerHTML = data.content || '';
+    } catch {
+        quill.root.innerHTML = '<p class="text-danger">Failed to load content.</p>';
+    }
+}
+
+// ── Submit Chapter form ───────────────────────────────
+document.getElementById('formChapter').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    document.getElementById('ch_content').value = quill.root.innerHTML;
+
+    const form      = this;
+    const submitBtn = document.getElementById('chSubmitBtn');
+    const action    = form.action;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+
+    try {
+        const res = await fetch(action, {
+            method: 'POST',
+            body: new FormData(form),
+        });
+
+        if (res.ok || res.redirected) {
+            window.location.href = window.location.pathname + window.location.search;
+            return;
+        }
+        if (res.status === 409) {
+            const data = await res.json();
+            showChapterError(data.message);
+            return;
+        }
+        showChapterError('An unexpected error occurred. Please try again.');
+    } catch {
+        showChapterError('Network error. Please check your connection.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = submitBtn.dataset.originalText || 'Save Chapter';
+    }
+});
+
+function showChapterError(msg) {
+    let alertEl = document.getElementById('chapterErrorAlert');
+    if (!alertEl) {
+        alertEl = document.createElement('div');
+        alertEl.id = 'chapterErrorAlert';
+        alertEl.className = 'alert alert-danger alert-dismissible d-flex align-items-center gap-2 py-2 mt-2 mb-0';
+        alertEl.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="chapterErrorMsg"></span>
+            <button type="button" class="btn-close ms-auto"
+                    onclick="this.parentElement.remove()"></button>`;
+        document.getElementById('formChapter')
+            .querySelector('.modal-footer')
+            .insertAdjacentElement('beforebegin', alertEl);
+    }
+    document.getElementById('chapterErrorMsg').textContent = msg;
+    alertEl.style.display = 'flex';
+}
+
+document.querySelectorAll('#chSubmitBtn').forEach(btn => {
+    btn.dataset.originalText = btn.textContent;
+});
+
+// ── Delete Modal ──────────────────────────────────────
+function confirmDelete(type, id, label) {
+    const form    = document.getElementById('formDelete');
+    const delId   = document.getElementById('del_id');
+    const delLbl  = document.getElementById('del_label');
+    const delWarn = document.getElementById('del_warning');
+
+    if (type === 'volume') {
+        form.action         = '?handler=DeleteVolume';
+        delId.name          = 'volumeId';
+        delWarn.textContent = '⚠️ All chapters inside will also be deleted!';
+    } else {
+        form.action         = '?handler=DeleteChapter';
+        delId.name          = 'chapterId';
+        delWarn.textContent = '';
+    }
+    delId.value          = id;
+    delLbl.textContent   = label;
+    new bootstrap.Modal(document.getElementById('modalDelete')).show();
+}
+</script>
+}

@@ -14,9 +14,9 @@ namespace ContosoUniversity.Pages.Departments
     [Authorize]
     public class IndexModel : PageModel
     {
-        private readonly ContosoUniversity.Data.SchoolContext _context;
+        private readonly ContosoUniversity.Data.ISchoolContext _context;
 
-        public IndexModel(ContosoUniversity.Data.SchoolContext context)
+        public IndexModel(ContosoUniversity.Data.ISchoolContext context)
         {
             _context = context;
         }

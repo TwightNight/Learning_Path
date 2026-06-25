@@ -1,0 +1,241 @@
+﻿@page "/users/create"
+@model NovelManangment.Pages.Users.CreateModel
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h3 class="mb-0">
+          <i class="fas fa-user-plus text-primary me-2"></i>Create User
+        </h3>
+        <small class="text-muted">Add a new account to the system</small>
+      </div>
+      <a href="@(User.IsInRole("Admin") ? "/users" : "/")" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <form method="post">
+
+          <!-- Account info -->
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-bottom py-2">
+              <h6 class="mb-0 fw-semibold">
+                <i class="fas fa-id-card me-1 text-primary"></i> Account Information
+              </h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label asp-for="Input.UserName" class="form-label fw-semibold">
+                    Username <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">@@</span>
+                    <input asp-for="Input.UserName" class="form-control"
+                           placeholder="username" autocomplete="off" />
+                  </div>
+                  <span asp-validation-for="Input.UserName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                  <label asp-for="Input.DisplayName" class="form-label fw-semibold">
+                    Display Name <span class="text-danger">*</span>
+                  </label>
+                  <input asp-for="Input.DisplayName" class="form-control"
+                         placeholder="Full name..." />
+                  <span asp-validation-for="Input.DisplayName" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                  <label asp-for="Input.Email" class="form-label fw-semibold">
+                    Email <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-envelope"></i>
+                    </span>
+                    <input asp-for="Input.Email" type="email" class="form-control"
+                           placeholder="user@example.com" autocomplete="off" />
+                  </div>
+                  <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                  <label asp-for="Input.AvatarUrl" class="form-label fw-semibold">
+                    Avatar URL
+                    <span class="text-muted fw-normal">(optional)</span>
+                  </label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-image"></i>
+                    </span>
+                    <input asp-for="Input.AvatarUrl" class="form-control"
+                           placeholder="https://..."
+                           oninput="previewAvatar(this.value)" />
+                  </div>
+                  <span asp-validation-for="Input.AvatarUrl" class="text-danger small"></span>
+                  <!-- Avatar preview -->
+                  <div class="mt-2 d-flex align-items-center gap-2">
+                    <img id="avatarPreview" src=""
+                         style="width:40px;height:40px;border-radius:50%;
+                                object-fit:cover;display:none;border:2px solid #dee2e6;" />
+                    <div id="avatarFallback"
+                         style="width:40px;height:40px;border-radius:50%;
+                                background:linear-gradient(135deg,#667eea,#764ba2);
+                                display:flex;align-items:center;justify-content:center;
+                                color:#fff;font-weight:700;font-size:16px;">
+                      ?
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Password -->
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white border-bottom py-2">
+              <h6 class="mb-0 fw-semibold">
+                <i class="fas fa-lock me-1 text-warning"></i> Password
+              </h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label asp-for="Input.Password" class="form-label fw-semibold">
+                    Password <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <input asp-for="Input.Password" type="password" id="pwd"
+                           class="form-control" placeholder="Min 6 characters" />
+                    <button type="button" class="btn btn-outline-secondary"
+                            onclick="togglePwd('pwd',this)">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                  <label asp-for="Input.ConfirmPassword" class="form-label fw-semibold">
+                    Confirm Password <span class="text-danger">*</span>
+                  </label>
+                  <div class="input-group">
+                    <input asp-for="Input.ConfirmPassword" type="password" id="cpwd"
+                           class="form-control" placeholder="Repeat password" />
+                    <button type="button" class="btn btn-outline-secondary"
+                            onclick="togglePwd('cpwd',this)">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                  </div>
+                  <span asp-validation-for="Input.ConfirmPassword"
+                        class="text-danger small"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Role -->
+          <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-2">
+              <h6 class="mb-0 fw-semibold">
+                <i class="fas fa-shield-alt me-1 text-danger"></i> Role & Permissions
+              </h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                @foreach (var role in Enum.GetValues<NovelManangment.Models.UserRole>())
+                {
+                  var (icon, desc, css) = role switch {
+                    NovelManangment.Models.UserRole.Member =>
+                      ("fa-user", "Can read novels and leave comments.", "secondary"),
+                    NovelManangment.Models.UserRole.Publisher =>
+                      ("fa-pen-nib", "Can publish and manage novels.", "info"),
+                    NovelManangment.Models.UserRole.Admin =>
+                      ("fa-shield-alt", "Full access to admin panel.", "danger"),
+                    NovelManangment.Models.UserRole.Moderator =>
+                      ("fa-brands fa-mastodon", "Can control publishing content and approval and approval.", "warning"),
+                    _ => ("fa-user", "", "secondary")
+                  };
+                  <div class="col-md-4">
+                    <div class="form-check card border p-3 h-100 role-card
+                                @(role == NovelManangment.Models.UserRole.Member ? "border-secondary" : "")">
+                      <input class="form-check-input" type="radio"
+                             name="Input.Role" value="@((int)role)"
+                             id="role_@role"
+                             onchange="highlightRole()"
+                             @(role == NovelManangment.Models.UserRole.Member ? "checked" : "") />
+                      <label class="form-check-label w-100" for="role_@role"
+                             style="cursor:pointer;">
+                        <div class="fw-semibold">
+                          <i class="fas @icon text-@css me-1"></i> @role
+                        </div>
+                        <div class="text-muted" style="font-size:11px;margin-top:4px;">
+                          @desc
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="@(User.IsInRole("Admin") ? "/users" : "/")" class="btn btn-outline-secondary">
+              <i class="fas fa-times me-1"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="fas fa-user-plus me-1"></i> Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+function togglePwd(id, btn) {
+    const el = document.getElementById(id);
+    const isText = el.type === 'text';
+    el.type = isText ? 'password' : 'text';
+    btn.innerHTML = `<i class="fas fa-eye${isText ? '' : '-slash'}"></i>`;
+}
+
+function previewAvatar(url) {
+    const img = document.getElementById('avatarPreview');
+    const fallback = document.getElementById('avatarFallback');
+    if (url?.trim()) {
+        img.src = url;
+        img.style.display = 'block';
+        fallback.style.display = 'none';
+        img.onerror = () => {
+            img.style.display = 'none';
+            fallback.style.display = 'flex';
+        };
+    } else {
+        img.style.display = 'none';
+        fallback.style.display = 'flex';
+    }
+}
+
+function highlightRole() {
+    document.querySelectorAll('.role-card').forEach(card => {
+        card.classList.remove('border-primary','border-secondary',
+                              'border-info','border-danger');
+    });
+    const checked = document.querySelector('input[name="Input.Role"]:checked');
+    if (checked) checked.closest('.role-card').classList.add('border-primary');
+}
+highlightRole();
+</script>
+}

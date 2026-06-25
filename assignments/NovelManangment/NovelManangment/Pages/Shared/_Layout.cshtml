@@ -1,0 +1,388 @@
+﻿@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@using NovelManangment.Data
+@inject ApplicationDbContext DbContext
+@using NovelManangment.Models
+
+@{
+    int? userId = int.TryParse(
+    User.FindFirstValue(ClaimTypes.NameIdentifier),
+    out var id)
+    ? id
+    : null;
+    User? user = null;
+    if (userId != null)
+    {
+        user = DbContext.Users
+            .AsNoTracking()
+            .FirstOrDefault(u => u.Id == userId);
+    }
+
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - NovelX Studio</title>
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <!-- OverlayScrollbars (Enhanced scrollbar styling) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/styles/overlayscrollbars.min.css" />
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+    <!-- AdminLTE 4 -->
+    <link rel="stylesheet" href="~/admin-lte/dist/css/adminlte.min.css" />
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+            /* Đảm bảo Header luôn dính ở trên cùng và có hiệu ứng trượt */
+            .app-header {
+                position: sticky;
+                top: 0;
+                z-index: 1034; /* Đảm bảo đè lên các thành phần khác */
+                transition: transform 0.3s ease-in-out; /* Hiệu ứng mượt mà 0.3s */
+            }
+
+                /* Class này sẽ được JS thêm vào khi cuộn xuống */
+                .app-header.nav-hidden {
+                    transform: translateY(-100%); /* Kéo header lên trên cùng để ẩn đi */
+                }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+
+</head>
+
+<body class="layout-fixed sidebar-expand-lg sidebar-mini sidebar-collapse bg-body-tertiary">
+    <div class="app-wrapper">
+
+        <!-- Navigation Header -->
+        <nav class="app-header navbar navbar-expand bg-body">
+            <div class="container-fluid">
+                <!-- Sidebar Toggle -->
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                            <i class="fas fa-bars"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item d-none d-md-block">
+                        <a asp-page="/Index" class="nav-link">Home</a>
+                    </li>
+                </ul>
+
+                <!-- Right Navigation Menu -->
+                <ul class="navbar-nav ms-auto">
+                    @if (!User.Identity?.IsAuthenticated ?? true)
+                    {
+                        <li class="nav-item">
+                            <a asp-page="/login" class="nav-link">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link">
+                                <a href="/users/@userId">
+                                    @if (!string.IsNullOrWhiteSpace(@user?.AvatarUrl))
+                                    {
+                                        <img src="@user?.AvatarUrl"
+                                             alt="Avatar"
+                                             width="32"
+                                             height="32"
+                                             class="rounded-circle me-2" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-user me-2"></i>
+                                    }
+
+                                    @User.Identity?.Name
+                                </a>
+                            </span>
+                        </li>
+
+                        <li class="nav-item">
+                            <a asp-page="/logout" class="nav-link">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    }
+
+                    <li class="nav-item">
+                        <a asp-page="/privacy" class="nav-link">
+                            <i class="fas fa-shield-alt"></i> Privacy
+                        </a>
+                    </li>
+
+                    @* Light/Dark mode *@
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="theme-toggle">
+                            <i class="fa-solid fa-moon"></i>
+                        </a>
+                    </li>
+
+                    <!-- Fullscreen Toggle -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-lte-toggle="fullscreen">
+                            <i data-lte-icon="maximize" class="fas fa-expand"></i>
+                            <i data-lte-icon="minimize" class="fas fa-compress d-none"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Sidebar Navigation -->
+        <aside class="app-sidebar bg-body-secondary shadow-sm" data-bs-theme="dark">
+            <!-- Brand Logo -->
+            <div class="sidebar-brand">
+                <a asp-page="/Index" class="brand-link">
+                    <span class="brand-text fw-light">NovelX Studio</span>
+                </a>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="sidebar-wrapper">
+                <nav class="mt-2">
+                    <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+                        
+                        <!-- Content Management -->
+                        <li class="nav-header text-center">
+                            <img src="https://avatars.githubusercontent.com/u/192676903?s=280&v=4"
+                                 alt="NovelX Studio Content"
+                                 class="img-fluid"
+                                 style="max-height:80px;">
+                        </li>
+                        @{
+                            // Lấy tên page hiện tại (Ví dụ: "/Index", "/Novels/Index", "/Novels/Create")
+                            var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+                            var path = Context.Request.Path.Value ?? "";
+                        }
+
+                        <li class="nav-item">
+                            <!-- Nếu trang hiện tại đúng là /Index thì thêm active -->
+                            <a asp-page="/Index" class="nav-link @(currentPage == "/Index" ? "active" : "")">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <!-- Dùng StartsWith để nếu bạn ở /Novels/Index hay /Novels/Create thì menu này vẫn active -->
+                            <a href="/novels" class="nav-link @(path.StartsWith("/novels") ? "active" : "")">
+                                <i class="nav-icon fas fa-book"></i>
+                                <p>
+                                    Novel Library
+                                </p>
+                            </a>
+                        </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a href="/my-follows" class="nav-link @(path.StartsWith("/my-follows") ? "active" : "")">
+                                    <i class="nav-icon fas fa-heart"></i>
+                                    <p>My Follows</p>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Moderator"))
+                        {
+                            <li class="nav-item">
+                                <a href="/moderator" class="nav-link @(path.StartsWith("/moderator") ? "active" : "")">
+                                    <i class="nav-icon fa-brands fa-mastodon"></i>
+                                    <p>Moderator Dashboard</p>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Publisher"))
+                        {
+                            <li class="nav-item">
+                                <a href="/my-novels" class="nav-link @(path.StartsWith("/my-novels") ? "active" : "")">
+                                    <i class="nav-icon fas fa-book-open"></i>
+                                    <p>My Novels</p>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a href="/admin/dashboard" class="nav-link @(path.StartsWith("/admin/dashboard") ? "active" : "")">
+                                    <i class="nav-icon fas fa-user-shield"></i>
+                                    <p>Admin Dashboard</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/admin/novels"
+                                       class="nav-link @(path.StartsWith("/admin/novels") ? "active" : "")">
+                                    <i class="nav-icon fa-brands fa-leanpub"></i>
+                                    <p>Manage Novels</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/genres" class="nav-link @(path.StartsWith("/genres") ? "active" : "")">
+                                    <i class="nav-icon fas fas fa-tags"></i>
+                                    <p>Genres</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/users" class="nav-link @(path.StartsWith("/users") ? "active" : "")">
+                                    <i class="nav-icon fas fas fa-user"></i>
+                                    <p>Users Manager</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="/admin/alerts" class="nav-link @(path.StartsWith("/admin/alerts") ? "active" : "")">
+                                    <i class="nav-icon fas fa-bullhorn"></i>
+                                    <p>Site Alerts</p>
+                                </a>
+                            </li>
+                        }
+                        </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="float-end d-none d-sm-inline">
+                v1.0.0
+            </div>
+
+            <strong>&copy; 2026 <a href="/">NovelX</a>.</strong>
+            All rights reserved.
+
+            <div class="mt-2 small text-muted">
+                <i class="fas fa-envelope me-1"></i>
+                <a href="mailto:support@novelx.com">support@novelx.com</a>
+
+                <span class="mx-2">|</span>
+
+                <i class="fas fa-phone me-1"></i>
+                <a href="tel:+84901234567">+84 901 234 567</a>
+
+                <span class="mx-2">|</span>
+
+                <i class="fab fa-facebook me-1"></i>
+                <a href="https://facebook.com/NovelX" target="_blank">
+                    Facebook
+                </a>
+
+                <span class="mx-2">|</span>
+
+                <i class="fab fa-discord me-1"></i>
+                <a href="https://discord.gg/NovelX" target="_blank">
+                    Discord
+                </a>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.3.0/browser/overlayscrollbars.browser.es6.min.js"></script>
+    <script src="~/admin-lte/dist/js/adminlte.min.js"></script>
+
+    <!-- Scrollbar Initialization -->
+    <script>
+        const SELECTOR_SIDEBAR_WRAPPER = ".sidebar-wrapper";
+        const ScrollbarConfig = {
+        scrollbarTheme: "os-theme-light",
+        scrollbarAutoHide: "leave",
+        scrollbarClickScroll: true,
+        };
+        
+        document.addEventListener("DOMContentLoaded", function() {
+        const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+        if (sidebarWrapper && typeof OverlayScrollbarsGlobal?.OverlayScrollbars !== "undefined") {
+        OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+        scrollbars: {
+        theme: ScrollbarConfig.scrollbarTheme,
+        autoHide: ScrollbarConfig.scrollbarAutoHide,
+        clickScroll: ScrollbarConfig.scrollbarClickScroll,
+        },
+        });
+        }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+        let lastScrollTop = 0;
+        const navbar = document.querySelector('.app-header');
+        const delta = 5; // Khoảng cách cuộn tối thiểu để tránh bị giật khi cuộn nhẹ
+        const navbarHeight = navbar.offsetHeight;
+
+        window.addEventListener('scroll', function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Nếu khoảng cách cuộn quá ít thì bỏ qua
+        if (Math.abs(lastScrollTop - scrollTop) <= delta) return;
+
+        if (scrollTop > lastScrollTop && scrollTop > navbarHeight) {
+        // HÀNH ĐỘNG: Cuộn xuống (Scroll Down) -> Ẩn Header
+        navbar.classList.add('nav-hidden');
+        } else {
+        // HÀNH ĐỘNG: Cuộn lên (Scroll Up) -> Hiện Header
+        if (scrollTop + window.innerHeight < document.documentElement.scrollHeight) {
+        navbar.classList.remove('nav-hidden');
+        }
+        }
+            
+        // Cập nhật lại vị trí cuộn
+        lastScrollTop = scrollTop;
+        });
+        });
+    </script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        const html = document.documentElement;
+        const btn = document.getElementById("theme-toggle");
+        const icon = btn.querySelector("i");
+
+        // Khôi phục theme đã lưu
+        const savedTheme = localStorage.getItem("theme") || "light";
+        html.setAttribute("data-bs-theme", savedTheme);
+        updateIcon(savedTheme);
+
+        btn.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        const current =
+        html.getAttribute("data-bs-theme") === "dark"
+        ? "light"
+        : "dark";
+
+        html.setAttribute("data-bs-theme", current);
+        localStorage.setItem("theme", current);
+        updateIcon(current);
+        });
+
+        function updateIcon(theme) {
+        if (theme === "dark") {
+        icon.className = "fa-solid fa-sun";
+        } else {
+        icon.className = "fa-solid fa-moon";
+        }
+        }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,262 @@
+﻿@page "/novels/create"
+@model NovelManangment.Pages.Novels.CreateModel
+@{
+    ViewData["Title"] = "Create Novel";
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-book-open text-primary"></i>
+            <h3 class="mb-0">Step 1: Create New Novel</h3>
+        </div>
+        <small class="text-muted">Fill in novel details, then proceed to create volumes & chapters.</small>
+    </div>
+</div>
+
+<div class="app-content">
+    <div class="container-fluid">
+        <form method="post">
+            <div class="row">
+
+                <!-- Left: Cover preview -->
+                <div class="col-md-3 mb-4">
+                    <div class="card card-outline card-secondary sticky-top" style="top:80px;">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-image me-1"></i> Cover Preview</h5>
+                        </div>
+                        <div class="card-body text-center p-2">
+                            <img id="coverPreview"
+                                 src="https://placehold.co/300x420?text=No+Cover"
+                                 alt="Cover preview"
+                                 class="img-fluid rounded"
+                                 style="max-height:320px;object-fit:cover;width:100%;" />
+                        </div>
+                        <div class="card-footer p-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input asp-for="Input.CoverUrl"
+                                       class="form-control"
+                                       placeholder="https://...cover.jpg"
+                                       oninput="updateCoverPreview(this.value)" />
+                            </div>
+                            <span asp-validation-for="Input.CoverUrl" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Main form -->
+                <div class="col-md-9">
+
+                    <!-- Basic Info -->
+                    <div class="card card-primary card-outline mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-info-circle me-1"></i> Basic Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label asp-for="Input.Title" class="form-label fw-semibold">
+                                        Title <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Input.Title" class="form-control"
+                                           placeholder="Enter novel title..." />
+                                    <span asp-validation-for="Input.Title" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.Type" class="form-label fw-semibold">Type</label>
+                                    <select asp-for="Input.Type" class="form-select">
+                                        <option value="0">📝 Original</option>
+                                        <option value="1">📄 Raw</option>
+                                        <option value="2">🤖 Machine Translated</option>
+                                        <option value="3">👤 Human Translated</option>
+                                        <option value="4">🎭 Parody</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label asp-for="Input.AlternativeTitle" class="form-label fw-semibold">
+                                        Alternative Title
+                                        <span class="text-muted fw-normal">(optional)</span>
+                                    </label>
+                                    <input asp-for="Input.AlternativeTitle" class="form-control"
+                                           placeholder="Other names, original language title..." />
+                                    <span asp-validation-for="Input.AlternativeTitle" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <label asp-for="Input.Language" class="form-label fw-semibold">
+                                        Language <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Input.Language" class="form-control"
+                                           placeholder="Enter novel language..." />
+                                    <span asp-validation-for="Input.Language" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Author & Status -->
+                    <div class="card card-info card-outline mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-users me-1"></i> Author & Status</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label asp-for="Input.AuthorName" class="form-label fw-semibold">
+                                        Author <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-pen-nib"></i></span>
+                                        <input asp-for="Input.AuthorName" class="form-control"
+                                               placeholder="Author name..." />
+                                    </div>
+                                    <span asp-validation-for="Input.AuthorName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.ArtistName" class="form-label fw-semibold">
+                                        Artist
+                                        <span class="text-muted fw-normal">(optional)</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-paint-brush"></i></span>
+                                        <input asp-for="Input.ArtistName" class="form-control"
+                                               placeholder="Artist name..." />
+                                    </div>
+                                    <span asp-validation-for="Input.ArtistName" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <label asp-for="Input.Status" class="form-label fw-semibold">Status</label>
+                                    <select asp-for="Input.Status" class="form-select">
+                                        <option value="0">🟢 Ongoing</option>
+                                        <option value="1">✅ Completed</option>
+                                        <option value="2">⏸️ Hiatus</option>
+                                        <option value="3">❌ Dropped</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Genres -->
+                    <div class="card card-success card-outline mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-tags me-1"></i> Genres
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <label class="form-label fw-semibold">
+                                Select Genres
+                                <span class="text-muted fw-normal">(optional)</span>
+                            </label>
+                                <div class="row g-2">
+                                    @foreach (var genre in Model.AllGenres)
+                                    {
+                                        <div class="col-6 col-md-4 col-lg-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input genre-checkbox"
+                                                       type="checkbox"
+                                                       name="Input.GenreIds"
+                                                       value="@genre.Id"
+                                                       id="genre_@genre.Id"
+                                                @(Model.Input.GenreIds.Contains(genre.Id) ? "checked" : "") />
+                                                <label class="form-check-label small" for="genre_@genre.Id">
+                                                    @genre.Name
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Selected tags preview -->
+                                <div id="selectedGenres" class="d-flex flex-wrap gap-1 mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="card card-warning card-outline mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-align-left me-1"></i> Description</h5>
+                        </div>
+                        <div class="card-body">
+                            <label asp-for="Input.Description" class="form-label fw-semibold">
+                                Synopsis <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="Input.Description" class="form-control" rows="6"
+                                      placeholder="Brief summary of the novel..."
+                                      oninput="updateWordCount(this)"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span asp-validation-for="Input.Description" class="text-danger small"></span>
+                                <small class="text-muted" id="wordCount">0 characters</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-page="/Novels/Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Library
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            Save & Continue to Volume
+                            <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updateCoverPreview(url) {
+            const img = document.getElementById('coverPreview');
+            if (url.trim()) {
+                img.src = url;
+                img.onerror = () => img.src = 'https://placehold.co/300x420?text=Invalid+URL';
+            } else {
+                img.src = 'https://placehold.co/300x420?text=No+Cover';
+            }
+        }
+
+        function updateWordCount(el) {
+            document.getElementById('wordCount').textContent = el.value.length + ' characters';
+        }
+
+        // Init character count nếu có giá trị sẵn (validation fail quay lại)
+        document.addEventListener('DOMContentLoaded', () => {
+            const desc = document.getElementById('Input_Description');
+            if (desc?.value) updateWordCount(desc);
+
+            const coverUrl = document.getElementById('Input_CoverUrl');
+            if (coverUrl?.value) updateCoverPreview(coverUrl.value);
+        });
+
+        // Genre tag preview
+        function updateGenreTags() {
+            const container = document.getElementById('selectedGenres');
+            if (!container) return;
+            container.innerHTML = '';
+            document.querySelectorAll('.genre-checkbox:checked').forEach(cb => {
+                const label = document.querySelector(`label[for="${cb.id}"]`).textContent.trim();
+                const tag = document.createElement('span');
+                tag.className = 'badge text-bg-success';
+                tag.style.cursor = 'pointer';
+                tag.title = 'Click to deselect';
+                tag.textContent = '× ' + label;
+                tag.onclick = () => { cb.checked = false; updateGenreTags(); };
+                container.appendChild(tag);
+            });
+        }
+
+        document.querySelectorAll('.genre-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateGenreTags);
+        });
+
+        // Init tags nếu có sẵn (validation fail quay lại)
+        updateGenreTags();
+    </script>
+}
