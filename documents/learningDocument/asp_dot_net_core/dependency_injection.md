@@ -1,7 +1,5 @@
 # Dependency Injection & Service Lifetime in ASP.NET Core
 
-> **Version:** Complete & Extended — covers the problem DI solves, the three lifetimes, dangerous pitfalls, real-world service layer organisation, and advanced registration techniques.
-
 ---
 
 ## Section 1 — The Problem Before DI
@@ -274,11 +272,11 @@ Singleton       │    A    A   A │      │    A    A   A │   entire app = 
                 └───────────────┘      └───────────────┘
 ```
 
-| Lifetime | Created | Disposed | Best for |
-|----------|---------|----------|----------|
-| `Transient` | Every injection | End of injection scope | Lightweight, stateless helpers |
-| `Scoped` | Once per HTTP request | End of request | DbContext, service layer, repositories |
-| `Singleton` | Once at startup | App shutdown | Caches, config readers, HTTP clients |
+| Lifetime    | Created               | Disposed               | Best for                               |
+| ----------- | --------------------- | ---------------------- | -------------------------------------- |
+| `Transient` | Every injection       | End of injection scope | Lightweight, stateless helpers         |
+| `Scoped`    | Once per HTTP request | End of request         | DbContext, service layer, repositories |
+| `Singleton` | Once at startup       | App shutdown           | Caches, config readers, HTTP clients   |
 
 ---
 
@@ -613,11 +611,11 @@ HTTP Request ends
 
 ## Summary
 
-| Lifetime | New instance created | Disposed | Typical use cases |
-|----------|---------------------|----------|-------------------|
-| `Transient` | Every injection | End of injection scope | Validators, mappers, lightweight helpers |
-| `Scoped` | Once per HTTP request | End of request | `DbContext`, service layer, repositories |
-| `Singleton` | Once at app startup | App shutdown | Caches, config readers, HTTP client factories |
+| Lifetime    | New instance created  | Disposed               | Typical use cases                             |
+| ----------- | --------------------- | ---------------------- | --------------------------------------------- |
+| `Transient` | Every injection       | End of injection scope | Validators, mappers, lightweight helpers      |
+| `Scoped`    | Once per HTTP request | End of request         | `DbContext`, service layer, repositories      |
+| `Singleton` | Once at app startup   | App shutdown           | Caches, config readers, HTTP client factories |
 
 **Captive Dependency** — the most dangerous mistake: a Singleton **must not** directly inject a Scoped or Transient service. Use `IServiceScopeFactory` if a Singleton genuinely needs a Scoped service.
 

@@ -213,6 +213,154 @@ Console.WriteLine(a); // Output: 50
 - **`out`** → when you need to return multiple values ​​from a function.
 - **Otherwise** → avoid overuse, as it can easily make the code difficult to read.
 
+## 7. Type Conversion
 
+In .NET (including C#), **Type Conversion** is the process of changing a value from one data type to another. .NET provides various conversion mechanisms depending on the data safety level and the data types involved in the conversion.
+
+Below are common types of data conversion in .NET.
+
+---
+
+### 1. Implicit Conversion
+Implicit conversion occurs automatically by the compiler when the conversion is guaranteed to be **safe**, without data loss and without causing memory overflow errors.
+
+* **For Value Types:** Converts from a smaller size or lower precision type to a larger size or higher precision type.
+
+```csharp
+
+int num = 123;
+
+double bigNum = num; // Automatically convert from int to double (safe)
+
+```
+* **For Reference Types:** Converts from a derived class to the base class or interface it implements.
+
+```csharp
+string text = "Hello";
+
+object obj = text; // Automatically converts from string to object
+
+```
+
+---
+### 2. Explicit Conversion / Casting
+Explicit conversion is used when the conversion risks **data loss** (e.g., converting from a real number to an integer, or converting from a larger to a smaller data type). The compiler requires you to use the cast operator `(data_type)` to confirm that you understand this risk.
+
+* **For Value Types:**
+
+```csharp
+double pi = 3.14159;
+
+int integerPi = (int)pi; // Manual type casting is required. The value will now only be 3 (losing the decimal part)
+
+```
+* **For reference types (Downcasting):** Converts from parent class to child class. This may cause an `InvalidCastException` error at runtime if the actual object is not of that child type.
+
+```csharp
+
+object obj = "This is a string";
+
+string str = (string)obj; // Valid because obj actually contains a string
+
+```
+
+---
+### 3. Conversion using Helper Classes
+When converting between data types that are not directly compatible (such as from a string to an integer), you cannot use the regular cast operator. Instead, .NET provides helper methods:
+
+#### a. The `System.Convert` class
+Provides a series of static methods (`ToInt32`, `ToDouble`, `ToBoolean`,...) to convert between basic types. This class handles `null` values ​​quite well (returning the default value of the target type instead of throwing an exception).
+
+```csharp
+string input = "456";
+
+int result = Convert.ToInt32(input); // Converts string to number 456
+```
+
+#### b. The `Parse` and `TryParse` methods
+Often used to parse a string into the target data type.
+
+* **`Parse`**: Throws an exception if the string is not correctly formatted.
+
+* **`TryParse`**: Returns `true` or `false` indicating a successful or failed conversion, and does not throw an exception, resulting in better performance when handling uncertain data.
+
+```csharp
+string successString = "123";
+
+string failString = "abc";
+
+// Use Parse (Risk of throwing a FormatException)
+int val1 = int.Parse(successString);
+
+// Use TryParse (Recommended for safety)
+if (int.TryParse(failString, out int val2))
+{
+Console.WriteLine($"Success: {val2}");
+
+}
+else
+{
+Console.WriteLine("Conversion failed.");
+
+}
+```
+
+---
+### 4. Safe Reference Type Conversion (`is` and `as`)
+To avoid `InvalidCastException` errors when casting object classes, .NET supports two very useful operators:
+
+* **The `as` operator**: Performs data type conversion. If the conversion fails, it returns `null` instead of throwing an error.
+
+```csharp
+object obj = 123; // This is actually an integer
+
+string str = obj as string; // Conversion failed because obj is not a string, str receives a null value
+
+```
+* **The `is` operator combined with Pattern Matching**: Checks whether the object belongs to the target type and assigns the value to a new variable if it is.
+
+```csharp
+object obj = "Hello World";
+
+if (obj is string message)
+
+{
+// If obj is a string, the variable message will be created and used in this block of code
+Console.WriteLine(message.ToUpper());
+}
+
+```
+
+---
+### 5. User-Defined Conversions
+You can define how your class or struct converts between different data types using the keywords `implicit` or `explicit`.
+
+```csharp
+public class Digit
+{
+public byte Value { get; }
+
+public Digit(byte value)
+
+{
+Value = value;
+
+}
+
+// Defines implicit conversion from Digit to byte
+public static implicit operator byte(Digit d) => d.Value;
+
+// Defines explicit conversion from byte to Digit
+public static explicit operator Digit(byte b) => new Digit(b); }
+
+// Usage:
+Digit d = new Digit(7);
+
+byte number = d; // Default: No casting required
+
+byte b = 9;
+
+Digit d2 = (Digit)b; // Explicit: Required
+```
 
 # Reference: https://www.w3schools.com/cs , https://learn.microsoft.com/vi-vn/dotnet/csharp/language-reference/builtin-types/value-types
