@@ -1,0 +1,21 @@
+@page
+@model IdentityDemo.Pages.IndexModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<h1>Demo Microsoft.AspNetCore.Identity</h1>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <p>Bạn đã đăng nhập với email <strong>@User.Identity.Name</strong>.</p>
+    <p>Roles: @string.Join(", ", Model.Roles)</p>
+}
+else
+{
+    <p>Bạn chưa đăng nhập. Tài khoản admin mặc định (được seed sẵn khi chạy):</p>
+    <ul>
+        <li>Email: <code>admin@identitydemo.local</code></li>
+        <li>Mật khẩu: <code>Admin@123</code></li>
+    </ul>
+}

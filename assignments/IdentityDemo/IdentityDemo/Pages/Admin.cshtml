@@ -1,0 +1,8 @@
+@page
+@model IdentityDemo.Pages.AdminModel
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<h2>Khu vực Admin</h2>
+<p>Chỉ user có role <code>Admin</code> mới xem được trang này (kiểm tra bằng [Authorize(Roles = "Admin")]).</p>
